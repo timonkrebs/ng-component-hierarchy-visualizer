@@ -1,5 +1,5 @@
 {
-  "name": "ng-component-hierarchy-visualizer",
+  "name": "@tsharp/ng-component-hierarchy-visualizer",
   "version": "1.0.0",
   "description": "generate mermaid representations of your angular component hierarchy",
   "keywords": [
@@ -13,19 +13,24 @@
   ],
   "main": "index.js",
   "bin": {
-    "generate-hierarchy": "./scripts/generate.js"
+    "generate-hierarchy": "scripts/generate.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer"
+    "url": "git+https://github.com/timonkrebs/ng-component-hierarchy-visualizer.git"
   },
   "type": "module",
   "author": "Timon Jucker",
   "license": "MIT",
   "dependencies": {
     "json5": "^2.2.3"
-  }
+  },
+  "devDependencies": {},
+  "bugs": {
+    "url": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer/issues"
+  },
+  "homepage": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer#readme"
 }
