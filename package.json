@@ -2,6 +2,15 @@
   "name": "ng-component-hierarchy-visualizer",
   "version": "1.0.0",
   "description": "generate mermaid representations of your angular component hierarchy",
+  "keywords": [
+    "angular",
+    "hierarchy",
+    "router",
+    "component",
+    "visualization",
+    "mermaid",
+    "mermaid js"
+  ],
   "main": "index.js",
   "bin": {
     "generate-hierarchy": "./scripts/generate.js"
@@ -10,7 +19,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
-  "author": "",
+  "author": "Timon Jucker",
   "license": "MIT",
   "dependencies": {
     "json5": "^2.2.3"
