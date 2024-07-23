@@ -13,7 +13,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "json5": "^2.2.3",
-    "mermaid": "^10.9.1"
+    "json5": "^2.2.3"
   }
 }
