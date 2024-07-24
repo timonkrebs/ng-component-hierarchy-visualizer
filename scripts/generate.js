@@ -17,10 +17,17 @@ const main = () => {
     generateMermaid(dependencies);
 };
 
-const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
+const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootComponent) => {
     const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     const match = fileContent.match(regex);
-    if (!match) return [];
+    if (!match) {
+        const matchImport = fileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
+        const cwd = process.env.INIT_CWD;
+
+        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
+        const routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
+        return extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
+    }
 
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
@@ -28,6 +35,64 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
             /canActivate:\s*\[[^\]]*\],\s*/g,
             ''
         )
+        // 1.2 Remove canMatch Guards:
+        .replace(
+            /canActivateChild:\s*\[[^\]]*\],\s*/g,
+            ''
+        )
+        // 1.3 Remove canDeactivate Guards:
+        .replace(
+            /canDeactivate:\s*\[[^\]]*\],\s*/g,
+            ''
+        )
+        // 1.4 Remove canMatch Guards:
+        .replace(
+            /canMatch:\s*\[[^\]]*\],\s*/g,
+            ''
+        )
+        // 1.5 Remove data:
+        .replace(
+            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},\s*/g,
+            ''
+        )
+        // 1.6 Remove resolve:
+        .replace(
+            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},\s*/g,
+            ''
+        )
+
+        // Remove all the trailing commas in case of last entry
+        // 1. Remove canActivate Guards:
+        .replace(
+            /,\s*canActivate:\s*\[[^\]]*\]\s*/g,
+            ''
+        )
+        // 1.2 Remove canMatch Guards:
+        .replace(
+            /,\s*canActivateChild:\s*\[[^\]]*\]\s*/g,
+            ''
+        )
+        // 1.3 Remove canDeactivate Guards:
+        .replace(
+            /,\s*canDeactivate:\s*\[[^\]]*\]\s*/g,
+            ''
+        )
+        // 1.4 Remove canMatch Guards:
+        .replace(
+            /,\s*canMatch:\s*\[[^\]]*\]\s*/g,
+            ''
+        )
+        // 1.5 Remove data:
+        .replace(
+            /,\s*data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}\s*/g,
+            ''
+        )
+        // 1.6 Remove resolve:
+        .replace(
+            /,\s*resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}\s*/g,
+            ''
+        )
+
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
         //    and transforms them into `{ path, componentType, parent }` objects
@@ -58,19 +123,27 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
         )
         // 6. Convert Keys to strings
         .replace(
-            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g, 
+            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g,
             '"$1"'
         )
         // 7. Convert Values wrapped in single quotes to strings
         .replaceAll(
-            "'", 
+            "'",
             '"'
         );
-
-    return JSON.parse(wrappedRoutesString);
+    const routes = JSON.parse(wrappedRoutesString);
+    return routes.filter(r => !r.redirectTo)
 };
 
-const flattenRoutes = (routes) => routes.flatMap(r => (r.children ? flattenRoutes(r.children) : [r]));
+const flattenRoutes = (routes) => {
+    return routes.flatMap(r => {
+        return r.children
+            ? r.component || r.loadComponent
+            ? [r, ...flattenRoutes(r.children)] 
+            : flattenRoutes(r.children)
+            : [r]
+    }    );
+};
 
 const resolveComponents = (routes, routesFileContent) => {
     return routes.flatMap(r => {
@@ -87,12 +160,13 @@ const resolveComponents = (routes, routesFileContent) => {
 const handleLoadChildren = (route) => {
     const cwd = process.env.INIT_CWD;
     const routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
-    const routes = extractRoutesFromTS(routesFileContent, route.path);
-    const flattenedRoutes = flattenRoutes(routes);
-    
+
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
 
-    return flattenedRoutes.map(fr => {
+    const routes = extractRoutesFromTS(routesFileContent, relativePath, route.path);
+
+    const flattenedRoutes = flattenRoutes(routes);
+    const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
         return {
             ...fr,
@@ -100,6 +174,7 @@ const handleLoadChildren = (route) => {
             loadComponent: thisPath,
         };
     });
+    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, type: 'route', skipLoadingDependencies: true }];
 };
 
 const handleComponent = (route, routesFileContent) => {
@@ -116,7 +191,11 @@ const handleComponent = (route, routesFileContent) => {
 };
 
 const addDependencies = (components, recursionDepth = 0) => {
-    const services = components.flatMap(c => loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD, c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth));
+    const services = components
+    .filter(c => !c.skipLoadingDependencies)
+    .flatMap(c => 
+        loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD, c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+    );
     return uniqueByProperty([...components, ...services]);
 };
 

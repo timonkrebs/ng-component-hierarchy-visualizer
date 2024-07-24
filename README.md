@@ -22,7 +22,7 @@ generate-hierarchy [path-to-routes-file]
 Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
 
 ## Example
-go to https://stackblitz.com/edit/huermn?file=package.json
+go to https://stackblitz.com/edit/bqtvoz?file=package.json
 ```
 cd src/app
 npm run generate-hierarchy
@@ -33,9 +33,9 @@ copy output to https://mermaid.live/
 Generates Mermaid Flowcharts that can be used directly in github etc.
 ```mermaid
 flowchart
-AppComponent --> DashboardComponent[DashboardComponent]
-AppComponent --> HeroDetailComponent[HeroDetailComponent]
-AppComponent --> HeroesComponent[HeroesComponent]
+AppComponent --> DashboardComponent(DashboardComponent)
+AppComponent --> HeroDetailComponent(HeroDetailComponent)
+AppComponent --> HeroesComponent(HeroesComponent)
 DashboardComponent --> HeroService{{HeroService}}
 HeroService --> MessageService{{MessageService}}
 HeroDetailComponent --> HeroService{{HeroService}}
