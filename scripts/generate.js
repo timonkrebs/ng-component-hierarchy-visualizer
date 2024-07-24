@@ -17,7 +17,7 @@ const main = () => {
     generateMermaid(dependencies);
 };
 
-const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootComponent) => {
+const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootComponent, parentName = null) => {
     const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     const match = fileContent.match(regex);
     if (!match) {
@@ -26,7 +26,8 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
 
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         const routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
-        return extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
+        const r = extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
+        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: true, type: 'route', skipLoadingDependencies: true }];;
     }
 
     const wrappedRoutesString = match[1]
@@ -139,10 +140,10 @@ const flattenRoutes = (routes) => {
     return routes.flatMap(r => {
         return r.children
             ? r.component || r.loadComponent
-            ? [r, ...flattenRoutes(r.children)] 
-            : flattenRoutes(r.children)
+                ? [r, ...flattenRoutes(r.children)]
+                : flattenRoutes(r.children)
             : [r]
-    }    );
+    });
 };
 
 const resolveComponents = (routes, routesFileContent) => {
@@ -151,7 +152,10 @@ const resolveComponents = (routes, routesFileContent) => {
             return [{ ...r, lazy: true, type: 'component' }];
         } else if (r.loadChildren) {
             return handleLoadChildren(r);
-        } else {
+        } else if (r.skipLoadingDependencies) {
+            return [r];
+        }
+        else {
             return handleComponent(r, routesFileContent);
         }
     }).filter(Boolean);
@@ -163,10 +167,13 @@ const handleLoadChildren = (route) => {
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
 
-    const routes = extractRoutesFromTS(routesFileContent, relativePath, route.path);
+    const routes = extractRoutesFromTS(routesFileContent, relativePath, route.path, route.componentType);
 
     const flattenedRoutes = flattenRoutes(routes);
     const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
+        if (fr.skipLoadingDependencies){
+            return fr;
+        }
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
         return {
             ...fr,
@@ -174,6 +181,7 @@ const handleLoadChildren = (route) => {
             loadComponent: thisPath,
         };
     });
+    
     return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, type: 'route', skipLoadingDependencies: true }];
 };
 
@@ -192,10 +200,10 @@ const handleComponent = (route, routesFileContent) => {
 
 const addDependencies = (components, recursionDepth = 0) => {
     const services = components
-    .filter(c => !c.skipLoadingDependencies)
-    .flatMap(c => 
-        loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD, c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
-    );
+        .filter(c => !c.skipLoadingDependencies)
+        .flatMap(c =>
+            loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD, c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+        );
     return uniqueByProperty([...components, ...services]);
 };
 
