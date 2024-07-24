@@ -11,7 +11,6 @@
     "mermaid",
     "mermaid js"
   ],
-  "main": "index.js",
   "bin": {
     "generate-hierarchy": "scripts/generate.js"
   },
@@ -25,9 +24,7 @@
   "type": "module",
   "author": "Timon Jucker",
   "license": "MIT",
-  "dependencies": {
-    "json5": "^2.2.3"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "bugs": {
     "url": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer/issues"

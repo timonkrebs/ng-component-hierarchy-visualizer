@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'path';
-import JSON5 from 'json5';
 
 const DEFAULT_ROUTES_FILE = 'app.routes.ts';
 const rootComponent = 'AppComponent';
@@ -56,9 +55,19 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
         .replace(
             /(\r\n|\n|\r)/gm,
             ""
+        )
+        // 6. Convert Keys to strings
+        .replace(
+            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g, 
+            '"$1"'
+        )
+        // 7. Convert Values wrapped in single quotes to strings
+        .replaceAll(
+            "'", 
+            '"'
         );
 
-    return JSON5.parse(wrappedRoutesString);
+    return JSON.parse(wrappedRoutesString);
 };
 
 const flattenRoutes = (routes) => routes.flatMap(r => (r.children ? flattenRoutes(r.children) : [r]));
@@ -164,7 +173,7 @@ const generateMermaid = (routes) => {
         } else {
             return r.type === 'service'
                 ? `${r.parent} --> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent} --> ${r.componentType}[${r.componentType}]`;
+                : `${r.parent} --> ${r.componentType}(${r.componentType})`;
         }
     });
     console.log(['flowchart', ...lines].join('\n'));
