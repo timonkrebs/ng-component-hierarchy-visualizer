@@ -104,7 +104,7 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         // 8.remove all trailing commas
         .replaceAll(/\,(?=\s*?[\}\]])/g, "");
 
-    const routes = JSON.parse(wrappedRoutesString).filter(r => !r.redirectTo);
+    const routes = JSON.parse(wrappedRoutesString).filter(r => r.redirectTo === null || r.redirectTo === undefined);
     return parentName
         ? [...routes, { componentType: rootName, path: relativePath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }]
         : routes;
