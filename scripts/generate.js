@@ -27,7 +27,7 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         const routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
-        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: true, type: 'route', skipLoadingDependencies: true }];;
+        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }];;
     }
 
     const wrappedRoutesString = match[1]
