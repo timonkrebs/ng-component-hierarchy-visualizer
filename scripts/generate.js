@@ -17,18 +17,9 @@ const main = () => {
     generateMermaid(dependencies);
 };
 
-const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootComponent, parentName = null) => {
+const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
     const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     const match = fileContent.match(regex);
-    if (!match) {
-        const matchImport = fileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
-        const cwd = process.env.INIT_CWD ?? process.cwd();
-
-        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
-        const routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
-        const r = extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
-        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }];
-    }
 
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
@@ -67,7 +58,7 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
         //    and transforms them into `{ path, componentType, parent }` objects
         .replace(
-            /\(\)\s*=>\s*import\((.*?)\)\.then\(\s*(\w+)\s*=>\s*\2\.(\w+)\s*\)/g,
+            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+)\s*\)/g,
             `$1, componentType: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentType) with Simplified Syntax:
@@ -105,9 +96,7 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         .replaceAll(/\,(?=\s*?[\}\]])/g, "");
 
     const routes = JSON.parse(wrappedRoutesString).filter(r => r.redirectTo === null || r.redirectTo === undefined);
-    return parentName
-        ? [...routes, { componentType: rootName, path: relativePath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }]
-        : routes;
+    return routes;
 };
 
 const flattenRoutes = (routes) => {
@@ -136,11 +125,26 @@ const resolveComponents = (routes, routesFileContent) => {
 
 const handleLoadChildren = (route) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
-    const routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
+    let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
 
-    const routes = extractRoutesFromTS(routesFileContent, relativePath, route.path, route.componentType);
+    const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
+    const match = routesFileContent.match(regex);
+    let routes = [];
+    if (!match) {
+        const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
+        const cwd = process.env.INIT_CWD ?? process.cwd();
+
+        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
+        routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
+        const r = extractRoutesFromTS(routesFileContent, route.path);
+
+        routes = [...r, { componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
+    } else {
+        extractRoutesFromTS(routesFileContent, route.path);
+        routes = [...r, { componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
+    }    
 
     const flattenedRoutes = flattenRoutes(routes).map(r => relativePath && r.loadChildren
         ? ({ ...r, loadChildren: path.join(relativePath, r.loadChildren) })
@@ -170,6 +174,7 @@ const handleComponent = (route, routesFileContent) => {
         const modulePath = match[2];
         return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
     } else {
+        console.log(56, route, routesFileContent, 34534);
         console.error(`Could not find path for component: ${route.component}`);
         return [null];
     }
