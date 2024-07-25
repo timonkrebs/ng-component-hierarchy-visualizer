@@ -128,8 +128,7 @@ const resolveComponents = (routes, routesFileContent) => {
             return handleLoadChildren(r);
         } else if (r.skipLoadingDependencies) {
             return [r];
-        }
-        else {
+        } else {
             return handleComponent(r, routesFileContent);
         }
     }).filter(Boolean);
@@ -143,12 +142,16 @@ const handleLoadChildren = (route) => {
 
     const routes = extractRoutesFromTS(routesFileContent, relativePath, route.path, route.componentType);
 
-    const flattenedRoutes = flattenRoutes(routes);
+    const flattenedRoutes = flattenRoutes(routes).map(r => relativePath && r.loadChildren
+        ? ({ ...r, loadChildren: path.join(relativePath, r.loadChildren) })
+        : r);
+
     const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
         if (fr.skipLoadingDependencies) {
             return fr;
         }
-        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
+        const thisPath = fr.loadComponent.startsWith(relativePath) ? fr.loadComponent : path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
+
         return {
             ...fr,
             componentType: thisPath,
@@ -160,14 +163,14 @@ const handleLoadChildren = (route) => {
 };
 
 const handleComponent = (route, routesFileContent) => {
-    const regex = new RegExp(`(?<=(?:import\\s*{\\s*|\\b))${route.component}\\b\\s*(?:,?\\s*\\w+\\s*)*}?\\s*from\\s*['"]([^'"]+)['"]`);
+    const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
     const match = routesFileContent.match(regex);
 
     if (match) {
-        const modulePath = match[1];
+        const modulePath = match[2];
         return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
     } else {
-        console.error(`Could not find path for component: ${route.componentType}`);
+        console.error(`Could not find path for component: ${route.component}`);
         return [null];
     }
 };
@@ -175,9 +178,13 @@ const handleComponent = (route, routesFileContent) => {
 const addDependencies = (components, recursionDepth = 0) => {
     const services = components
         .filter(c => !c.skipLoadingDependencies)
-        .flatMap(c =>
-            loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
-        );
+        .flatMap(c => {
+            try {
+                return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+            } catch {
+                return []
+            }
+        });
     return uniqueByProperty([...components, ...services]);
 };
 
