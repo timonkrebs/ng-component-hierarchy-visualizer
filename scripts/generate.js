@@ -95,7 +95,7 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
         // 8.remove all trailing commas
         .replaceAll(/\,(?=\s*?[\}\]])/g, "");
 
-    const routes = JSON.parse(wrappedRoutesString).filter(r => r.redirectTo === null || r.redirectTo === undefined);
+    const routes = JSON.parse(wrappedRoutesString)
     return routes;
 };
 
@@ -142,8 +142,8 @@ const handleLoadChildren = (route) => {
 
         routes = [...r, { componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
     } else {
-        extractRoutesFromTS(routesFileContent, route.path);
-        routes = [...r, { componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
+        const r = extractRoutesFromTS(routesFileContent, route.path);
+        routes = [...r, { componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
     }    
 
     const flattenedRoutes = flattenRoutes(routes).map(r => relativePath && r.loadChildren
@@ -173,8 +173,7 @@ const handleComponent = (route, routesFileContent) => {
     if (match) {
         const modulePath = match[2];
         return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
-    } else {
-        console.log(56, route, routesFileContent, 34534);
+    } else if(!route.hasOwnProperty('redirectTo')){
         console.error(`Could not find path for component: ${route.component}`);
         return [null];
     }
