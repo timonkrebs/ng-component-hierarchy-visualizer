@@ -7,8 +7,8 @@ const rootComponent = 'AppComponent';
 
 const main = () => {
     const routesFilePath = process.argv[2] ?? DEFAULT_ROUTES_FILE;
-    const routesFileContent = fs.readFileSync(path.join(process.env.INIT_CWD, `./${routesFilePath}`), 'utf-8');
 
+    const routesFileContent = fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), `./${routesFilePath}`), 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const flattenedRoutes = flattenRoutes(routes);
     const components = resolveComponents(flattenedRoutes, routesFileContent);
@@ -22,75 +22,44 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
     const match = fileContent.match(regex);
     if (!match) {
         const matchImport = fileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
-        const cwd = process.env.INIT_CWD;
+        const cwd = process.env.INIT_CWD ?? process.cwd();
 
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         const routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, path.relative(cwd, path.resolve(cwd, thisPath, "..")), rootName);
-        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }];;
+        return [...r, { componentType: rootName, path: thisPath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }];
     }
 
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
         .replace(
-            /canActivate:\s*\[[^\]]*\],\s*/g,
+            /canActivate:\s*\[[^\]]*\],?\s*/g,
             ''
         )
         // 1.2 Remove canMatch Guards:
         .replace(
-            /canActivateChild:\s*\[[^\]]*\],\s*/g,
+            /canActivateChild:\s*\[[^\]]*\],?\s*/g,
             ''
         )
         // 1.3 Remove canDeactivate Guards:
         .replace(
-            /canDeactivate:\s*\[[^\]]*\],\s*/g,
+            /canDeactivate:\s*\[[^\]]*\],?\s*/g,
             ''
         )
         // 1.4 Remove canMatch Guards:
         .replace(
-            /canMatch:\s*\[[^\]]*\],\s*/g,
-            ''
-        )
-        // 1.5 Remove data:
-        .replace(
-            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},\s*/g,
-            ''
-        )
-        // 1.6 Remove resolve:
-        .replace(
-            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},\s*/g,
+            /canMatch:\s*\[[^\]]*\],?\s*/g,
             ''
         )
 
-        // Remove all the trailing commas in case of last entry
-        // 1. Remove canActivate Guards:
-        .replace(
-            /,\s*canActivate:\s*\[[^\]]*\]\s*/g,
-            ''
-        )
-        // 1.2 Remove canMatch Guards:
-        .replace(
-            /,\s*canActivateChild:\s*\[[^\]]*\]\s*/g,
-            ''
-        )
-        // 1.3 Remove canDeactivate Guards:
-        .replace(
-            /,\s*canDeactivate:\s*\[[^\]]*\]\s*/g,
-            ''
-        )
-        // 1.4 Remove canMatch Guards:
-        .replace(
-            /,\s*canMatch:\s*\[[^\]]*\]\s*/g,
-            ''
-        )
         // 1.5 Remove data:
         .replace(
-            /,\s*data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}\s*/g,
+            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
         // 1.6 Remove resolve:
         .replace(
-            /,\s*resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}\s*/g,
+            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
 
@@ -131,9 +100,14 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         .replaceAll(
             "'",
             '"'
-        );
-    const routes = JSON.parse(wrappedRoutesString);
-    return routes.filter(r => !r.redirectTo)
+        )
+        // 8.remove all trailing commas
+        .replaceAll(/\,(?=\s*?[\}\]])/g, "");
+
+    const routes = JSON.parse(wrappedRoutesString).filter(r => !r.redirectTo);
+    return parentName
+        ? [...routes, { componentType: rootName, path: relativePath, parent: parentName, lazy: false, type: 'route', skipLoadingDependencies: true }]
+        : routes;
 };
 
 const flattenRoutes = (routes) => {
@@ -162,7 +136,7 @@ const resolveComponents = (routes, routesFileContent) => {
 };
 
 const handleLoadChildren = (route) => {
-    const cwd = process.env.INIT_CWD;
+    const cwd = process.env.INIT_CWD ?? process.cwd();
     const routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
@@ -171,7 +145,7 @@ const handleLoadChildren = (route) => {
 
     const flattenedRoutes = flattenRoutes(routes);
     const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
-        if (fr.skipLoadingDependencies){
+        if (fr.skipLoadingDependencies) {
             return fr;
         }
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
@@ -181,7 +155,7 @@ const handleLoadChildren = (route) => {
             loadComponent: thisPath,
         };
     });
-    
+
     return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, type: 'route', skipLoadingDependencies: true }];
 };
 
@@ -202,7 +176,7 @@ const addDependencies = (components, recursionDepth = 0) => {
     const services = components
         .filter(c => !c.skipLoadingDependencies)
         .flatMap(c =>
-            loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD, c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+            loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
         );
     return uniqueByProperty([...components, ...services]);
 };
@@ -242,7 +216,7 @@ const createService = (serviceName, componentCode, parent) => {
     const match = componentCode.match(importRegex);
     if (!match || !match[1].startsWith('.')) return null;
 
-    const cwd = process.env.INIT_CWD;
+    const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
     const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[1]));
 
