@@ -67,8 +67,8 @@ const extractRoutesFromTS = (fileContent, relativePath = null, rootName = rootCo
         //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
         //    and transforms them into `{ path, componentType, parent }` objects
         .replace(
-            /\(\) => import\((.*?)\).then\(m => m\.(\w+)\)/g,
-            `$1, componentType: "$2", parent: "${rootName}"`
+            /\(\)\s*=>\s*import\((.*?)\)\.then\(\s*(\w+)\s*=>\s*\2\.(\w+)\s*\)/g,
+            `$1, componentType: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentType) with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path)` and 
@@ -212,13 +212,13 @@ const loadAllConstructorInjectedServices = (componentCode, parent) => {
 };
 
 const createService = (serviceName, componentCode, parent) => {
-    const importRegex = new RegExp(`(?<=(?:import\\s*{\\s*|\\b))${serviceName}\\b\\s*(?:,?\\s*\\w+\\s*)*}?\\s*from\\s*['"]([^'"]+)['"]`);
+    const importRegex = new RegExp(`import\\s*{\\s*([^}]*\\b${serviceName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
     const match = componentCode.match(importRegex);
-    if (!match || !match[1].startsWith('.')) return null;
+    if (!match || !match[2].startsWith('.')) return null;
 
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
-    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[1]));
+    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[2]));
 
     return { componentType: serviceName, loadComponent: `./${thisPath.toString()}`, path: parent.path, parent: parent.componentType, lazy: false, type: 'service' };
 };
