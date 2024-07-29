@@ -39,6 +39,16 @@ export const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
         match = fileContent.match(regex);
     }
 
+    if (!match) {
+        regex = /.*(\[[\s\S]*?\])satisfies Routes;/m;
+        match = fileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*(\[[\s\S]*?\])satisfies Route\[\];/m;
+        match = fileContent.match(regex);
+    }
+
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
         .replace(
@@ -127,18 +137,21 @@ export const flattenRoutes = (routes) => {
     });
 };
 
-export const resolveComponents = (routes, routesFileContent) => {
+export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
 
     return routes.flatMap(r => {
         if (r.loadComponent) {
-            return [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
+
+            return relativePath
+                ? [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, relativePath, r.loadComponent)) }]
+                : [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
         } else if (r.loadChildren) {
             return handleLoadChildren(r);
         } else if (r.skipLoadingDependencies) {
             return [r];
         } else {
-            return handleComponent(r, routesFileContent);
+            return handleComponent(r, routesFileContent, relativePath);
         }
     }).filter(Boolean);
 };
@@ -148,8 +161,39 @@ const handleLoadChildren = (route) => {
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
-    const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
-    const match = routesFileContent.match(regex);
+    let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
+    let match = routesFileContent.match(regex);
+
+    if (!match) {
+        regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
+        match = routesFileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = routesFileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = routesFileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = routesFileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*(\[[\s\S]*?\])satisfies Routes;/m;
+        match = routesFileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*(\[[\s\S]*?\])satisfies Route\[\];/m;
+        match = routesFileContent.match(regex);
+    }
+
     let routes = [];
     if (!match) {
         const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
@@ -168,19 +212,21 @@ const handleLoadChildren = (route) => {
             ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
             : r);
 
-    const components = resolveComponents(flattenedRoutes, routesFileContent);
+    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePath);
 
     return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true }];
 };
 
 
-const handleComponent = (route, routesFileContent) => {
+const handleComponent = (route, routesFileContent, relativePath = null) => {
     const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
     const match = routesFileContent.match(regex);
 
     if (match) {
+        const cwd = process.env.INIT_CWD ?? process.cwd();
         const modulePath = match[2];
-        return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
+        const loadComponent = modulePath && relativePath ?  path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+        return [{ path: route.path, loadComponent, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
     } else if (!route.hasOwnProperty('redirectTo')) {
         console.error(`Could not find path for component: ${route.component}`);
         return [null];

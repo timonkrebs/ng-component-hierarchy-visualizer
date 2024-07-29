@@ -79,7 +79,7 @@ AppComponent --> HomeComponent(HomeComponent)
     });
 });
 
-describe('Nesting', () => {
+describe('generateDeepNestedRoutes', () => {
     it('should resolve components from routes', () => {
         process.env.INIT_CWD = "./tests/route-definitions/ngx-admin";
         const components = main('app-routing.module.ts');

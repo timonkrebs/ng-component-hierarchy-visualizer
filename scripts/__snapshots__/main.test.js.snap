@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Nesting should resolve components from routes 1`] = `
+exports[`generateDeepNestedRoutes should resolve components from routes 1`] = `
 "flowchart LR
 subgraph PagesModule
 direction LR
@@ -103,7 +103,8 @@ AppComponent --> NbRegisterComponent(NbRegisterComponent)
 AppComponent --> NbLogoutComponent(NbLogoutComponent)
 AppComponent --> NbRequestPasswordComponent(NbRequestPasswordComponent)
 AppComponent --> NbResetPasswordComponent(NbResetPasswordComponent)
-AppComponent --> NbAuthComponent(NbAuthComponent)"
+AppComponent --> NbAuthComponent(NbAuthComponent)
+DashboardComponent --> SolarData{{SolarData}}"
 `;
 
 exports[`generateLazyComponents should resolve components from routes 1`] = `
@@ -125,6 +126,10 @@ AppComponent -.-> ./features/article/pages/article/article.component(./features/
 UserService --> JwtService{{JwtService}}
 ./core/auth/auth.component --> UserService{{UserService}}
 ./features/settings/settings.component --> UserService{{UserService}}
+./components/profile-articles.component --> ProfileService{{ProfileService}}
+./components/profile-favorites.component --> ProfileService{{ProfileService}}
+ProfileComponent --> UserService{{UserService}}
+ProfileComponent --> ProfileService{{ProfileService}}
 ./features/article/pages/editor/editor.component --> ArticlesService{{ArticlesService}}
 ./features/article/pages/editor/editor.component --> UserService{{UserService}}
 ./features/article/pages/article/article.component --> ArticlesService{{ArticlesService}}
