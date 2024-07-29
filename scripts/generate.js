@@ -266,7 +266,7 @@ const generateMermaid = (routes) => {
                 : `${r.parent} --> ${r.componentType}(${r.componentType})`;
         }
     });
-    console.log(['flowchart', ...lines].join('\n'));
+    console.log(['flowchart LR', ...lines].join('\n'));
 };
 
 main();
