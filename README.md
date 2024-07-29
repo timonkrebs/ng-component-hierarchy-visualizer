@@ -35,7 +35,7 @@ copy output to https://mermaid.live/
 Generates Mermaid Flowcharts that can be used directly in github and everywhere else where [mermaid is rendered natively](https://mermaid.js.org/ecosystem/integrations-community.html#community-integrations).
 
 ```mermaid
-flowchart
+flowchart LR
 AppComponent --> DashboardComponent(DashboardComponent)
 AppComponent --> HeroDetailComponent(HeroDetailComponent)
 AppComponent --> HeroesComponent(HeroesComponent)
@@ -52,7 +52,7 @@ At this stage the library does have several limitations:
 
 - Complex Route Configurations:
 
-    The library may not handle very complex or deeply nested route configurations well. If routes contain multiple layers of lazy-loaded modules or dynamic imports, the accuracy of the extracted routes and components might be compromised.
+    The library may not handle very complex route configurations. If routes contain variable routes, the accuracy of the extracted routes and components might be compromised.
 
 - Service Detection:
 
@@ -73,10 +73,6 @@ At this stage the library does have several limitations:
 - Mermaid Diagram Complexity:
 
     For very large applications with many routes and dependencies, the generated Mermaid diagrams can become overly complex and difficult to read. Users might need to manually simplify or segment the diagrams for better clarity.
-
-- Performance:
-
-    Performance might degrade for very large projects with numerous files and deeply nested routes, potentially resulting in long processing times or high memory usage.
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any changes.

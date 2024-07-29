@@ -21,22 +21,22 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
     let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     let match = fileContent.match(regex);
 
-    if(!match){
+    if (!match) {
         regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
         match = fileContent.match(regex);
     }
 
-    if(!match){
+    if (!match) {
         regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
         match = fileContent.match(regex);
     }
-    
-    if(!match){
+
+    if (!match) {
         regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
         match = fileContent.match(regex);
     }
 
-    if(!match){
+    if (!match) {
         regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
         match = fileContent.match(regex);
     }
@@ -112,7 +112,7 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
         )
         // 8.remove all trailing commas
         .replaceAll(
-            /\,(?=\s*?[\}\]])/g, 
+            /\,(?=\s*?[\}\]])/g,
             "");
 
     const routes = JSON.parse(wrappedRoutesString)
@@ -123,7 +123,7 @@ const flattenRoutes = (routes) => {
     return routes.flatMap(r => {
         return r.children
             ? r.component || r.loadComponent
-                ? [r, ...flattenRoutes(r.children)]
+                ? [...flattenRoutes(r.children), r]
                 : flattenRoutes(r.children)
             : [r]
     });
@@ -148,7 +148,7 @@ const resolveComponents = (routes, routesFileContent) => {
 const handleLoadChildren = (route) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
-    
+
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
     const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     const match = routesFileContent.match(regex);
@@ -159,28 +159,20 @@ const handleLoadChildren = (route) => {
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, route.path);
 
-        routes = [...r, { componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
+        routes = [{ componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     } else {
         const r = extractRoutesFromTS(routesFileContent, route.path);
-        routes = [...r, { componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', skipLoadingDependencies: true }];
-    }    
+        routes = [{ componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+    }
 
-    const flattenedRoutes = flattenRoutes(routes).map(r => relativePath && r.loadChildren
-        ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
-        : r);
+    const flattenedRoutes = flattenRoutes(routes)
+        .map(r => relativePath && r.loadChildren
+            ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
+            : r);
 
-    const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
-        if (fr.skipLoadingDependencies) {
-            return fr;
-        }
-        return {
-            ...fr,
-            componentType: fr.loadComponent,
-            loadComponent: fr.loadComponent,
-        };
-    });
+    const components = resolveComponents(flattenedRoutes, routesFileContent);
 
-    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, type: 'route', skipLoadingDependencies: true }];
+    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true }];
 };
 
 
@@ -191,7 +183,7 @@ const handleComponent = (route, routesFileContent) => {
     if (match) {
         const modulePath = match[2];
         return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
-    } else if(!route.hasOwnProperty('redirectTo')){
+    } else if (!route.hasOwnProperty('redirectTo')) {
         console.error(`Could not find path for component: ${route.component}`);
         return [null];
     }
@@ -256,15 +248,25 @@ const uniqueByProperty = (arr) => [...new Map(arr.map(item => [item.componentTyp
 
 const generateMermaid = (routes) => {
     const lines = routes.map(r => {
-        if (r.lazy) {
-            return r.type === 'service'
-                ? `${r.parent} -.-> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent} -.-> ${r.componentType}(${r.componentType})`;
-        } else {
-            return r.type === 'service'
-                ? `${r.parent} --> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent} --> ${r.componentType}(${r.componentType})`;
+        const l = [];
+        if(r.subgraph === 'end'){
+            l.push('end');
         }
+
+        if(r.subgraph === 'start'){
+            l.push(`subgraph ${r.parent}`)
+            l.push('direction LR');
+        }else if (r.lazy ) {
+            l.push(r.type === 'service'
+                ? `${r.parent} -.-> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent} -.-> ${r.componentType}(${r.componentType})`);
+        } else {
+            l.push(r.type === 'service'
+                ? `${r.parent} --> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent} --> ${r.componentType}(${r.componentType})`);
+        }
+        
+        return l.join('\n');
     });
     console.log(['flowchart LR', ...lines].join('\n'));
 };
