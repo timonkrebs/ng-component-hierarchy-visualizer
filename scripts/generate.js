@@ -18,8 +18,28 @@ const main = () => {
 };
 
 const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
-    const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
-    const match = fileContent.match(regex);
+    let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
+    let match = fileContent.match(regex);
+
+    if(!match){
+        regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
+        match = fileContent.match(regex);
+    }
+
+    if(!match){
+        regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
+    
+    if(!match){
+        regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
+
+    if(!match){
+        regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
 
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
