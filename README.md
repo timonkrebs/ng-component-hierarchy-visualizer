@@ -15,7 +15,7 @@ Generate Mermaid representations of your Angular component hierarchy representat
 npm install -g @tsharp/ng-component-hierarchy-visualizer
 ```
 ## Usage
-Navigate to the directory that contains the toplevel routs.
+Navigate to the directory that contains the toplevel routes.
 
 ```bash
 cd src/app
@@ -65,10 +65,6 @@ At this stage the library does have several limitations:
 - Path Resolution:
 
     Path resolution relies on the current working directory. If the project structure is unusual or if symbolic links are involved, the path resolution might fail, leading to errors or incomplete graphs.
-
-- Error Handling:
-
-    Error handling is rudimentary and primarily logs errors to the console. In production environments or more complex projects, this may not provide sufficient feedback for debugging and fixing issues.
 
 - Mermaid Diagram Complexity:
 
