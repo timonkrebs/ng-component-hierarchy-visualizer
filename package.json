@@ -1,6 +1,6 @@
 {
   "name": "@tsharp/ng-component-hierarchy-visualizer",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "generate mermaid representations of your angular component hierarchy",
   "keywords": [
     "angular",
@@ -15,7 +15,7 @@
     "generate-hierarchy": "scripts/generate.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
@@ -24,8 +24,9 @@
   "type": "module",
   "author": "Timon Jucker",
   "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
   "bugs": {
     "url": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer/issues"
   },

@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generateMain should resolve components from routes 1`] = `
+"flowchart LR
+subgraph PagesModule
+direction LR
+pages --> ECommerceComponent(ECommerceComponent)
+pages --> DashboardComponent(DashboardComponent)
+subgraph LayoutModule
+direction LR
+layout --> StepperComponent(StepperComponent)
+layout --> ListComponent(ListComponent)
+layout --> InfiniteListComponent(InfiniteListComponent)
+layout --> AccordionComponent(AccordionComponent)
+layout --> Tab1Component(Tab1Component)
+layout --> Tab2Component(Tab2Component)
+layout --> TabsComponent(TabsComponent)
+layout --> LayoutComponent(LayoutComponent)
+end
+pages -.-> LayoutModule(LayoutModule)
+subgraph FormsModule
+direction LR
+forms --> FormInputsComponent(FormInputsComponent)
+forms --> FormLayoutsComponent(FormLayoutsComponent)
+forms --> ButtonsComponent(ButtonsComponent)
+forms --> DatepickerComponent(DatepickerComponent)
+forms --> FormsComponent(FormsComponent)
+end
+pages -.-> FormsModule(FormsModule)
+subgraph UiFeaturesModule
+direction LR
+ui-features --> GridComponent(GridComponent)
+ui-features --> IconsComponent(IconsComponent)
+ui-features --> TypographyComponent(TypographyComponent)
+ui-features --> SearchComponent(SearchComponent)
+ui-features --> UiFeaturesComponent(UiFeaturesComponent)
+end
+pages -.-> UiFeaturesModule(UiFeaturesModule)
+subgraph ModalOverlaysModule
+direction LR
+modal-overlays --> DialogComponent(DialogComponent)
+modal-overlays --> WindowComponent(WindowComponent)
+modal-overlays --> PopoversComponent(PopoversComponent)
+modal-overlays --> TooltipComponent(TooltipComponent)
+modal-overlays --> ToastrComponent(ToastrComponent)
+modal-overlays --> ModalOverlaysComponent(ModalOverlaysComponent)
+end
+pages -.-> ModalOverlaysModule(ModalOverlaysModule)
+subgraph ExtraComponentsModule
+direction LR
+extra-components --> CalendarComponent(CalendarComponent)
+extra-components --> ProgressBarComponent(ProgressBarComponent)
+extra-components --> SpinnerComponent(SpinnerComponent)
+extra-components --> AlertComponent(AlertComponent)
+extra-components --> CalendarKitFullCalendarShowcaseComponent(CalendarKitFullCalendarShowcaseComponent)
+extra-components --> ChatComponent(ChatComponent)
+extra-components --> ExtraComponentsComponent(ExtraComponentsComponent)
+end
+pages -.-> ExtraComponentsModule(ExtraComponentsModule)
+subgraph MapsModule
+direction LR
+maps --> GmapsComponent(GmapsComponent)
+maps --> LeafletComponent(LeafletComponent)
+maps --> BubbleMapComponent(BubbleMapComponent)
+maps --> SearchMapComponent(SearchMapComponent)
+maps --> MapsComponent(MapsComponent)
+end
+pages -.-> MapsModule(MapsModule)
+subgraph ChartsModule
+direction LR
+charts --> EchartsComponent(EchartsComponent)
+charts --> D3Component(D3Component)
+charts --> ChartjsComponent(ChartjsComponent)
+charts --> ChartsComponent(ChartsComponent)
+end
+pages -.-> ChartsModule(ChartsModule)
+subgraph EditorsModule
+direction LR
+editors --> TinyMCEComponent(TinyMCEComponent)
+editors --> CKEditorComponent(CKEditorComponent)
+editors --> EditorsComponent(EditorsComponent)
+end
+pages -.-> EditorsModule(EditorsModule)
+subgraph TablesModule
+direction LR
+tables --> SmartTableComponent(SmartTableComponent)
+tables --> TreeGridComponent(TreeGridComponent)
+tables --> TablesComponent(TablesComponent)
+end
+pages -.-> TablesModule(TablesModule)
+subgraph MiscellaneousModule
+direction LR
+miscellaneous --> NotFoundComponent(NotFoundComponent)
+miscellaneous --> MiscellaneousComponent(MiscellaneousComponent)
+end
+pages -.-> MiscellaneousModule(MiscellaneousModule)
+pages --> NotFoundComponent(NotFoundComponent)
+pages --> PagesComponent(PagesComponent)
+end
+AppComponent -.-> PagesModule(PagesModule)
+AppComponent --> NbLoginComponent(NbLoginComponent)
+AppComponent --> NbRegisterComponent(NbRegisterComponent)
+AppComponent --> NbLogoutComponent(NbLogoutComponent)
+AppComponent --> NbRequestPasswordComponent(NbRequestPasswordComponent)
+AppComponent --> NbResetPasswordComponent(NbResetPasswordComponent)
+AppComponent --> NbAuthComponent(NbAuthComponent)"
+`;

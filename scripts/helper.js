@@ -1,0 +1,270 @@
+const rootComponent = 'AppComponent';
+
+import fs from 'node:fs';
+import path from 'path';
+
+const DEFAULT_ROUTES_FILE = 'app.routes.ts';
+
+export const main = (routesFilePath) => {
+    const routesFileContent = fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), `./${routesFilePath}`), 'utf-8');
+    const routes = extractRoutesFromTS(routesFileContent);
+    const flattenedRoutes = flattenRoutes(routes);
+    const components = resolveComponents(flattenedRoutes, routesFileContent);
+    const dependencies = addDependencies(components);
+
+    return generateMermaid(dependencies);
+};
+
+export const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
+    let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
+    let match = fileContent.match(regex);
+
+    if (!match) {
+        regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
+        match = fileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
+
+    if (!match) {
+        regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
+        match = fileContent.match(regex);
+    }
+
+    const wrappedRoutesString = match[1]
+        // 1. Remove canActivate Guards:
+        .replace(
+            /canActivate:\s*\[[^\]]*\],?\s*/g,
+            ''
+        )
+        // 1.2 Remove canMatch Guards:
+        .replace(
+            /canActivateChild:\s*\[[^\]]*\],?\s*/g,
+            ''
+        )
+        // 1.3 Remove canDeactivate Guards:
+        .replace(
+            /canDeactivate:\s*\[[^\]]*\],?\s*/g,
+            ''
+        )
+        // 1.4 Remove canMatch Guards:
+        .replace(
+            /canMatch:\s*\[[^\]]*\],?\s*/g,
+            ''
+        )
+        // 1.5 Remove data:
+        .replace(
+            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
+            ''
+        )
+        // 1.6 Remove resolve:
+        .replace(
+            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
+            ''
+        )
+        // 2. Replace Lazy Loaded Routes with Simplified Syntax:
+        //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
+        //    and transforms them into `{ path, componentType, parent }` objects
+        .replace(
+            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+),?\s*\)/g,
+            `$1, componentType: "$3", parent: "${rootName}"`
+        )
+        // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentType) with Simplified Syntax:
+        //    This matches routes with the pattern `() => import(path)` and 
+        //    transforms them into `{ path, componentType, parent }` objects
+        //    It uses the path also as the componentType
+        .replace(
+            /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
+            `$1, componentType: $1, parent: "${rootName}"`
+        )
+        // 4. Handle Routes with the 'component' Property:
+        //    This matches routes with the pattern `component: SomeComponent`
+        //    and adds the 'parent' property to them
+        .replace(
+            /(component:\s*)(\w+)/g,
+            `$1"$2", parent: "${rootName}"`
+        )
+        // 5. Remove Newlines and Carriage Returns:
+        //    This simplifies the string for further processing
+        .replace(
+            /(\r\n|\n|\r)/gm,
+            ""
+        )
+        // 6. Convert Keys to strings
+        .replace(
+            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g,
+            '"$1"'
+        )
+        // 7. Convert Values wrapped in single quotes to strings
+        .replaceAll(
+            "'",
+            '"'
+        )
+        // 8.remove all trailing commas
+        .replaceAll(
+            /\,(?=\s*?[\}\]])/g,
+            "");
+
+    const routes = JSON.parse(wrappedRoutesString)
+    return routes;
+};
+
+export const flattenRoutes = (routes) => {
+    return routes.flatMap(r => {
+        return r.children
+            ? r.component || r.loadComponent
+                ? [...flattenRoutes(r.children), { ...r, children: null }]
+                : flattenRoutes(r.children)
+            : [r]
+    });
+};
+
+export const resolveComponents = (routes, routesFileContent) => {
+    const cwd = process.env.INIT_CWD ?? process.cwd();
+
+    return routes.flatMap(r => {
+        if (r.loadComponent) {
+            return [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
+        } else if (r.loadChildren) {
+            return handleLoadChildren(r);
+        } else if (r.skipLoadingDependencies) {
+            return [r];
+        } else {
+            return handleComponent(r, routesFileContent);
+        }
+    }).filter(Boolean);
+};
+
+const handleLoadChildren = (route) => {
+    const cwd = process.env.INIT_CWD ?? process.cwd();
+    let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
+
+    const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
+    const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
+    const match = routesFileContent.match(regex);
+    let routes = [];
+    if (!match) {
+        const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
+        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
+        routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
+        const r = extractRoutesFromTS(routesFileContent, route.path);
+
+        routes = [{ componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+    } else {
+        const r = extractRoutesFromTS(routesFileContent, route.path);
+        routes = [{ componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+    }
+
+    const flattenedRoutes = flattenRoutes(routes)
+        .map(r => relativePath && r.loadChildren
+            ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
+            : r);
+
+    const components = resolveComponents(flattenedRoutes, routesFileContent);
+
+    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true }];
+};
+
+
+const handleComponent = (route, routesFileContent) => {
+    const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
+    const match = routesFileContent.match(regex);
+
+    if (match) {
+        const modulePath = match[2];
+        return [{ path: route.path, loadComponent: modulePath, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
+    } else if (!route.hasOwnProperty('redirectTo')) {
+        console.error(`Could not find path for component: ${route.component}`);
+        return [null];
+    }
+};
+
+export const addDependencies = (components, recursionDepth = 0) => {
+    const services = components
+        .filter(c => !c.skipLoadingDependencies)
+        .flatMap(c => {
+            try {
+                return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+            } catch {
+                return []
+            }
+        });
+    return uniqueByProperty([...components, ...services]);
+};
+
+const loadAllServices = (componentCode, parent, recursionDepth = 0) => {
+    const services = [
+        ...loadAllInjectedServices(componentCode, parent),
+        ...loadAllConstructorInjectedServices(componentCode, parent),
+    ];
+
+    if (recursionDepth > 2 || !services.length) {
+        return uniqueByProperty(services);
+    }
+
+    return addDependencies(uniqueByProperty(services), recursionDepth + 1);
+};
+
+const loadAllInjectedServices = (componentCode, parent) => {
+    const injectRegex = /(?<=inject\()\w+(?=\))/g;
+    const matches = componentCode.match(injectRegex);
+    if (!matches) return [];
+
+    return matches.map(s => createService(s, componentCode, parent)).filter(Boolean);
+};
+
+const loadAllConstructorInjectedServices = (componentCode, parent) => {
+    const constructorRegex = /constructor\s*\(\s*([^)]+)\)/;
+    const match = componentCode.match(constructorRegex);
+    if (!match) return [];
+
+    const serviceNames = [...match[1].matchAll(/:\s*([A-Za-z0-9_]+)/g)].map(m => m[1]);
+    return serviceNames.map(s => createService(s, componentCode, parent)).filter(Boolean);
+};
+
+const createService = (serviceName, componentCode, parent) => {
+    const importRegex = new RegExp(`import\\s*{\\s*([^}]*\\b${serviceName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
+    const match = componentCode.match(importRegex);
+    if (!match || !match[2].startsWith('.')) return null;
+
+    const cwd = process.env.INIT_CWD ?? process.cwd();
+    const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
+    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[2]));
+
+    return { componentType: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentType, lazy: false, type: 'service' };
+};
+
+const uniqueByProperty = (arr) => [...new Map(arr.map(item => [item.componentType + item.parent, item])).values()];
+
+export const generateMermaid = (routes) => {
+    const lines = routes.map(r => {
+        const l = [];
+        if (r.subgraph === 'end') {
+            l.push('end');
+        }
+
+        if (r.subgraph === 'start') {
+            l.push(`subgraph ${r.parent}`)
+            l.push('direction LR');
+        } else if (r.lazy) {
+            l.push(r.type === 'service'
+                ? `${r.parent} -.-> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent} -.-> ${r.componentType}(${r.componentType})`);
+        } else {
+            l.push(r.type === 'service'
+                ? `${r.parent} --> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent} --> ${r.componentType}(${r.componentType})`);
+        }
+
+        return l.join('\n');
+    });
+    return ['flowchart LR', ...lines].join('\n');
+};
