@@ -1,9 +1,17 @@
-const rootComponent = 'AppComponent';
-
 import fs from 'node:fs';
 import path from 'path';
 
-const DEFAULT_ROUTES_FILE = 'app.routes.ts';
+const ROOT_COMPONENT = 'AppComponent';
+
+const ROUTES_REGEX_LIST = [
+    /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m,
+    /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m,
+    /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
+    /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
+    /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
+    /.*(\[[\s\S]*?\])satisfies Routes;/m,
+    /.*(\[[\s\S]*?\])satisfies Route\[\];/m
+];
 
 export const main = (routesFilePath) => {
     const routesFileContent = fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), `./${routesFilePath}`), 'utf-8');
@@ -15,39 +23,9 @@ export const main = (routesFilePath) => {
     return generateMermaid(dependencies);
 };
 
-export const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
-    let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
-    let match = fileContent.match(regex);
-
-    if (!match) {
-        regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
-        match = fileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = fileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = fileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = fileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*(\[[\s\S]*?\])satisfies Routes;/m;
-        match = fileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*(\[[\s\S]*?\])satisfies Route\[\];/m;
-        match = fileContent.match(regex);
-    }
+export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
+    const match = ROUTES_REGEX_LIST.map(regex => fileContent.match(regex)).find(match => match);
+    if (!match) throw new Error('Routes not found in the provided file content.');
 
     const wrappedRoutesString = match[1]
         // 1. Remove canActivate Guards:
@@ -127,15 +105,13 @@ export const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
     return routes;
 };
 
-export const flattenRoutes = (routes) => {
-    return routes.flatMap(r => {
-        return r.children
-            ? r.component || r.loadComponent
-                ? [...flattenRoutes(r.children), { ...r, children: null }]
-                : flattenRoutes(r.children)
-            : [r]
-    });
-};
+export const flattenRoutes = (routes) =>
+    routes.flatMap(r => r.children
+        ? r.component || r.loadComponent
+            ? [...flattenRoutes(r.children), { ...r, children: null }]
+            : flattenRoutes(r.children)
+        : [r]
+    );
 
 export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
@@ -161,38 +137,7 @@ const handleLoadChildren = (route) => {
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
-    let regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
-    let match = routesFileContent.match(regex);
-
-    if (!match) {
-        regex = /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m;
-        match = routesFileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = routesFileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = routesFileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m;
-        match = routesFileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*(\[[\s\S]*?\])satisfies Routes;/m;
-        match = routesFileContent.match(regex);
-    }
-
-    if (!match) {
-        regex = /.*(\[[\s\S]*?\])satisfies Route\[\];/m;
-        match = routesFileContent.match(regex);
-    }
+    const match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
 
     let routes = [];
     if (!match) {
@@ -217,15 +162,13 @@ const handleLoadChildren = (route) => {
     return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true }];
 };
 
-
 const handleComponent = (route, routesFileContent, relativePath = null) => {
     const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
     const match = routesFileContent.match(regex);
-
     if (match) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const modulePath = match[2];
-        const loadComponent = modulePath && relativePath ?  path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+        const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
         return [{ path: route.path, loadComponent, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
     } else if (!route.hasOwnProperty('redirectTo')) {
         console.error(`Could not find path for component: ${route.component}`);
@@ -238,9 +181,9 @@ export const addDependencies = (components, recursionDepth = 0) => {
         .filter(c => !c.skipLoadingDependencies)
         .flatMap(c => {
             try {
-                return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth)
+                return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth);
             } catch {
-                return []
+                return [];
             }
         });
     return uniqueByProperty([...components, ...services]);
@@ -298,7 +241,7 @@ export const generateMermaid = (routes) => {
         }
 
         if (r.subgraph === 'start') {
-            l.push(`subgraph ${r.parent}`)
+            l.push(`subgraph ${r.parent}`);
             l.push('direction LR');
         } else if (r.lazy) {
             l.push(r.type === 'service'

@@ -1,6 +1,7 @@
 # @tsharp/ng-component-hierarchy-visualizer
 
 <a href="https://www.npmjs.com/package/@tsharp/ng-component-hierarchy-visualizer" rel="nofollow"><img src="https://img.shields.io/npm/v/@tsharp/ng-component-hierarchy-visualizer.svg?style=flat-square" style="max-width: 100%;"></a>
+![CI](https://img.shields.io/github/actions/workflow/status/timonkrebs/ng-component-hierarchy-visualizer/node.js.yml?style=flat-square)
 
 Generate Mermaid representations of your Angular component hierarchy representation based on the route configurations.
 
