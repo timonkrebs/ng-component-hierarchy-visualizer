@@ -42,7 +42,6 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
             /canMatch:\s*\[[^\]]*\],?\s*/g,
             ''
         )
-
         // 1.5 Remove data:
         .replace(
             /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
@@ -53,12 +52,11 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
             /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
-
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
         //    and transforms them into `{ path, componentType, parent }` objects
         .replace(
-            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+)\s*\)/g,
+            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+),?\s*\)/g,
             `$1, componentType: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentType) with Simplified Syntax:
@@ -93,7 +91,9 @@ const extractRoutesFromTS = (fileContent, rootName = rootComponent) => {
             '"'
         )
         // 8.remove all trailing commas
-        .replaceAll(/\,(?=\s*?[\}\]])/g, "");
+        .replaceAll(
+            /\,(?=\s*?[\}\]])/g, 
+            "");
 
     const routes = JSON.parse(wrappedRoutesString)
     return routes;
@@ -110,9 +110,11 @@ const flattenRoutes = (routes) => {
 };
 
 const resolveComponents = (routes, routesFileContent) => {
+    const cwd = process.env.INIT_CWD ?? process.cwd();
+
     return routes.flatMap(r => {
         if (r.loadComponent) {
-            return [{ ...r, lazy: true, type: 'component' }];
+            return [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
         } else if (r.loadChildren) {
             return handleLoadChildren(r);
         } else if (r.skipLoadingDependencies) {
@@ -126,16 +128,13 @@ const resolveComponents = (routes, routesFileContent) => {
 const handleLoadChildren = (route) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
-
+    
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
-
     const regex = /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m;
     const match = routesFileContent.match(regex);
     let routes = [];
     if (!match) {
         const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
-        const cwd = process.env.INIT_CWD ?? process.cwd();
-
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, route.path);
@@ -147,24 +146,23 @@ const handleLoadChildren = (route) => {
     }    
 
     const flattenedRoutes = flattenRoutes(routes).map(r => relativePath && r.loadChildren
-        ? ({ ...r, loadChildren: path.join(relativePath, r.loadChildren) })
+        ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
         : r);
 
     const components = resolveComponents(flattenedRoutes, routesFileContent).map(fr => {
         if (fr.skipLoadingDependencies) {
             return fr;
         }
-        const thisPath = fr.loadComponent.startsWith(relativePath) ? fr.loadComponent : path.relative(cwd, path.resolve(cwd, relativePath, fr.loadComponent));
-
         return {
             ...fr,
-            componentType: thisPath,
-            loadComponent: thisPath,
+            componentType: fr.loadComponent,
+            loadComponent: fr.loadComponent,
         };
     });
 
     return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, type: 'route', skipLoadingDependencies: true }];
 };
+
 
 const handleComponent = (route, routesFileContent) => {
     const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
@@ -231,7 +229,7 @@ const createService = (serviceName, componentCode, parent) => {
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
     const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[2]));
 
-    return { componentType: serviceName, loadComponent: `./${thisPath.toString()}`, path: parent.path, parent: parent.componentType, lazy: false, type: 'service' };
+    return { componentType: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentType, lazy: false, type: 'service' };
 };
 
 const uniqueByProperty = (arr) => [...new Map(arr.map(item => [item.componentType + item.parent, item])).values()];
