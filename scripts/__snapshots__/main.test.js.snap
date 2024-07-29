@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`generateMain should resolve components from routes 1`] = `
+exports[`Nesting should resolve components from routes 1`] = `
 "flowchart LR
 subgraph PagesModule
 direction LR
@@ -104,4 +104,30 @@ AppComponent --> NbLogoutComponent(NbLogoutComponent)
 AppComponent --> NbRequestPasswordComponent(NbRequestPasswordComponent)
 AppComponent --> NbResetPasswordComponent(NbResetPasswordComponent)
 AppComponent --> NbAuthComponent(NbAuthComponent)"
+`;
+
+exports[`generateLazyComponents should resolve components from routes 1`] = `
+"flowchart LR
+AppComponent -.-> ./features/article/pages/home/home.component(./features/article/pages/home/home.component)
+AppComponent -.-> ./core/auth/auth.component(./core/auth/auth.component)
+AppComponent -.-> ./features/settings/settings.component(./features/settings/settings.component)
+subgraph ./features/profile/profile.routes
+direction LR
+profile -.-> ./components/profile-articles.component(./components/profile-articles.component)
+profile -.-> ./components/profile-favorites.component(./components/profile-favorites.component)
+profile --> ProfileComponent(ProfileComponent)
+end
+AppComponent -.-> ./features/profile/profile.routes(./features/profile/profile.routes)
+AppComponent -.-> ./features/article/pages/editor/editor.component(./features/article/pages/editor/editor.component)
+AppComponent -.-> ./features/article/pages/article/article.component(./features/article/pages/article/article.component)
+./features/article/pages/home/home.component --> TagsService{{TagsService}}
+./features/article/pages/home/home.component --> UserService{{UserService}}
+UserService --> JwtService{{JwtService}}
+./core/auth/auth.component --> UserService{{UserService}}
+./features/settings/settings.component --> UserService{{UserService}}
+./features/article/pages/editor/editor.component --> ArticlesService{{ArticlesService}}
+./features/article/pages/editor/editor.component --> UserService{{UserService}}
+./features/article/pages/article/article.component --> ArticlesService{{ArticlesService}}
+./features/article/pages/article/article.component --> CommentsService{{CommentsService}}
+./features/article/pages/article/article.component --> UserService{{UserService}}"
 `;

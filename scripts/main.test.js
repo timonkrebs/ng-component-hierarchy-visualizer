@@ -79,22 +79,18 @@ AppComponent --> HomeComponent(HomeComponent)
     });
 });
 
-describe('generateMain', () => {
+describe('Nesting', () => {
     it('should resolve components from routes', () => {
         process.env.INIT_CWD = "./tests/route-definitions/ngx-admin";
-        const routes = [
-            { path: '', component: 'HomeComponent' },
-            { path: 'lazy', loadComponent: './lazy.component.ts' }
-        ];
-        const routesFileContent = `
-            import { HomeComponent } from './home.component';
-            import { LazyComponent } from './lazy.component';
-        `;
-        const expectedComponents = [
-            { path: '', loadComponent: './home.component', componentType: 'HomeComponent', lazy: false, type: 'component' },
-            { path: 'lazy', loadComponent: 'lazy.component.ts', lazy: true, type: 'component' }
-        ];
         const components = main('app-routing.module.ts');
+        expect(components).toMatchSnapshot();
+    });
+});
+
+describe('generateLazyComponents', () => {
+    it('should resolve components from routes', () => {
+        process.env.INIT_CWD = "./tests/route-definitions/real-world";
+        const components = main('app.routes.ts');
         expect(components).toMatchSnapshot();
     });
 });
