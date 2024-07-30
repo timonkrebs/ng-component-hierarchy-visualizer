@@ -1,36 +1,40 @@
 # @tsharp/ng-component-hierarchy-visualizer
 
 <a href="https://www.npmjs.com/package/@tsharp/ng-component-hierarchy-visualizer" rel="nofollow"><img src="https://img.shields.io/npm/v/@tsharp/ng-component-hierarchy-visualizer.svg?style=flat-square" style="max-width: 100%;"></a>
-![CI](https://img.shields.io/github/actions/workflow/status/timonkrebs/ng-component-hierarchy-visualizer/node.js.yml?style=flat-square)
+<a href="https://github.com/timonkrebs/ng-component-hierarchy-visualizer/actions/workflows/node.js.yml" rel="nofollow"><img src="https://img.shields.io/github/actions/workflow/status/timonkrebs/ng-component-hierarchy-visualizer/node.js.yml?style=flat-square" style="max-width: 100%;"></a>
 
 Generate Mermaid representations of your Angular component hierarchy representation based on the route configurations.
 
 ## Features
 
-- Visualize Angular component hierarchy using Mermaid.js.
+- Visualize Angular routing component hierarchy using Mermaid.js.
 - Supports eagerly and lazily loaded components.
+- Optionally include services in the visualization.
 
 ## Installation
-
+Install the package globally using npm:
 ```bash
 npm install -g @tsharp/ng-component-hierarchy-visualizer
 ```
 ## Usage
-Navigate to the directory that contains the toplevel routes.
+Navigate to the directory that contains the routes from which the graph should be generated.
 
 ```bash
 cd src/app
-generate-hierarchy [path-to-routes-file]
+generate-hierarchy [path-to-routes-file] --withServices
 ```
-Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
+- Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
+- Use --withServices to include services in the output. (ignores Angular services for clarity)
+- Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
-go to https://stackblitz.com/edit/bqtvoz?file=package.json
+1. go to https://stackblitz.com/edit/bqtvoz?file=package.json
+2. wait until dependencies are installed and run following commands in the stackblitz terminal
 ```
 cd src/app
-npm run generate-hierarchy
+npm run generate-hierarchy --withServices
 ```
-copy output to https://mermaid.live/
+3. copy output to https://mermaid.live/
 
 # Output
 Generates Mermaid Flowcharts that can be used directly in github and everywhere else where [mermaid is rendered natively](https://mermaid.js.org/ecosystem/integrations-community.html#community-integrations).
@@ -51,25 +55,11 @@ Or it can be pasted into the mermaid live editor:
 # Known Limitations
 At this stage the library does have several limitations:
 
-- Complex Route Configurations:
-
-    The library may not handle very complex route configurations. If routes contain variable routes, the accuracy of the extracted routes and components might be compromised.
-
-- Service Detection:
-
-    Detection of services is limited to those directly injected into components or those explicitly imported. Services injected via more dynamic or indirect methods may not be detected and included in the dependency graph. It also does not work with path aliases.
-
-- Recursion Depth:
-
-    The library has a fixed recursion depth for detecting nested dependencies, which is set to prevent infinite loops and excessive memory consumption. Very deep or complex dependency chains might not be fully resolved.
-
-- Path Resolution:
-
-    Path resolution relies on the current working directory. If the project structure is unusual or if symbolic links are involved, the path resolution might fail, leading to errors or incomplete graphs.
-
-- Mermaid Diagram Complexity:
-
-    For very large applications with many routes and dependencies, the generated Mermaid diagrams can become overly complex and difficult to read. Users might need to manually simplify or segment the diagrams for better clarity.
+- **Complex Route Configurations**: The library may not handle very complex route configurations accurately, especially those involving variable routes.
+- **Service Detection**: Limited to services directly injected into components or explicitly imported. It may not detect dynamically injected services.
+- **Recursion Depth**: The library has a fixed recursion depth for detecting nested dependencies, potentially missing very deep or complex chains.
+- **Path Resolution**: Unusual project structures or symbolic links may cause resolution issues.
+- **Mermaid Diagram Complexity**: Large applications may produce complex diagrams that are difficult to read.
 
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any changes.

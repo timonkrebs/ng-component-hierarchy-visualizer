@@ -81,16 +81,22 @@ AppComponent --> HomeComponent(HomeComponent)
 
 describe('generateDeepNestedRoutes', () => {
     it('should resolve components from routes', () => {
-        process.env.INIT_CWD = "./tests/route-definitions/ngx-admin";
-        const components = main('app-routing.module.ts');
+        const components = main({
+            basePath: "./tests/route-definitions/ngx-admin",
+            routesFilePath: 'app-routing.module.ts',
+            withServices: true
+        });
         expect(components).toMatchSnapshot();
     });
 });
 
 describe('generateLazyComponents', () => {
     it('should resolve components from routes', () => {
-        process.env.INIT_CWD = "./tests/route-definitions/real-world";
-        const components = main('app.routes.ts');
+        const components = main({
+            basePath: "./tests/route-definitions/real-world",
+            routesFilePath: 'app.routes.ts',
+            withServices: true
+        });
         expect(components).toMatchSnapshot();
     });
 });

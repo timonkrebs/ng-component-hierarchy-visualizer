@@ -13,14 +13,19 @@ const ROUTES_REGEX_LIST = [
     /.*(\[[\s\S]*?\])satisfies Route\[\];/m
 ];
 
-export const main = (routesFilePath) => {
-    const routesFileContent = fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), `./${routesFilePath}`), 'utf-8');
+export const main = (args) => {
+    process.env.INIT_CWD = args.basePath;
+    const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const flattenedRoutes = flattenRoutes(routes);
-    const components = resolveComponents(flattenedRoutes, routesFileContent);
-    const dependencies = addDependencies(components);
-
-    return generateMermaid(dependencies);
+    let components = resolveComponents(flattenedRoutes, routesFileContent);
+    
+    if(args.withServices){
+        const dependencies = addDependencies(components);
+        return generateMermaid(dependencies);
+    }
+    
+    return generateMermaid(components);
 };
 
 export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
@@ -140,15 +145,17 @@ const handleLoadChildren = (route) => {
     const match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
 
     let routes = [];
+    // if routes are not configured directly in the module we have to analyze the routing.module
     if (!match) {
         const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, route.path);
-
+        // Add connection from module to path
         routes = [{ componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     } else {
         const r = extractRoutesFromTS(routesFileContent, route.path);
+        // Add connection from module to path
         routes = [{ componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     }
 
@@ -159,7 +166,8 @@ const handleLoadChildren = (route) => {
 
     const components = resolveComponents(flattenedRoutes, routesFileContent, relativePath);
 
-    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true }];
+    // Add connection to module
+    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true, module: true }];
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
@@ -222,7 +230,7 @@ const loadAllConstructorInjectedServices = (componentCode, parent) => {
 const createService = (serviceName, componentCode, parent) => {
     const importRegex = new RegExp(`import\\s*{\\s*([^}]*\\b${serviceName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
     const match = componentCode.match(importRegex);
-    if (!match || !match[2].startsWith('.')) return null;
+    if (!match || !match[2] || match[2].startsWith('@angular')) return null;
 
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
