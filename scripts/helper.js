@@ -249,16 +249,16 @@ export const generateMermaid = (routes) => {
         }
 
         if (r.subgraph === 'start') {
-            l.push(`subgraph ${r.parent}`);
+            l.push(`subgraph ${r.parent ?? 'empty'}`);
             l.push('direction LR');
         } else if (r.lazy) {
             l.push(r.type === 'service'
-                ? `${r.parent} -.-> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent} -.-> ${r.componentType}(${r.componentType})`);
+                ? `${r.parent ?? 'empty'} -.-> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent ?? 'empty'} -.-> ${r.componentType}(${r.componentType})`);
         } else {
             l.push(r.type === 'service'
-                ? `${r.parent} --> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent} --> ${r.componentType}(${r.componentType})`);
+                ? `${r.parent ?? 'empty'} --> ${r.componentType}{{${r.componentType}}}`
+                : `${r.parent ?? 'empty'} --> ${r.componentType}(${r.componentType})`);
         }
 
         return l.join('\n');

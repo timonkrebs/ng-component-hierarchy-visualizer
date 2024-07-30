@@ -28,11 +28,11 @@ generate-hierarchy [path-to-routes-file] --withServices
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
-1. go to https://stackblitz.com/edit/bqtvoz?file=package.json
+1. go to https://stackblitz.com/edit/bqtvoz-qegzax?file=package.json
 2. wait until dependencies are installed and run following commands in the stackblitz terminal
 ```
 cd src/app
-npm run generate-hierarchy --withServices
+npm run generate-hierarchy
 ```
 3. copy output to https://mermaid.live/
 
