@@ -45,7 +45,7 @@ describe('resolveComponents', () => {
             import { LazyComponent } from './lazy.component';
         `;
         const expectedComponents = [
-            { path: '', loadComponent: './home.component', componentType: 'HomeComponent', lazy: false, type: 'component' },
+            { path: '', loadComponent: './home.component', componentName: 'HomeComponent', lazy: false, type: 'component' },
             { path: 'lazy', loadComponent: 'lazy.component.ts', lazy: true, type: 'component' }
         ];
         const components = resolveComponents(routes, routesFileContent);
@@ -56,10 +56,10 @@ describe('resolveComponents', () => {
 describe('addServices', () => {
     it('should add dependencies to components', () => {
         const components = [
-            { path: '', loadComponent: './home.component', componentType: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
+            { path: '', loadComponent: './home.component', componentName: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
         ];
         const expectedDependencies = [
-            { path: '', loadComponent: './home.component', componentType: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
+            { path: '', loadComponent: './home.component', componentName: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
         ];
         const dependencies = addServices(components);
         expect(dependencies).toEqual(expectedDependencies);
@@ -69,7 +69,7 @@ describe('addServices', () => {
 describe('generateMermaid', () => {
     it('should generate Mermaid diagram from routes', () => {
         const routes = [
-            { path: '', componentType: 'HomeComponent', parent: 'AppComponent', type: 'component' }
+            { path: '', componentName: 'HomeComponent', parent: 'AppComponent', type: 'component' }
         ];
         const expectedOutput = `
 flowchart LR
@@ -88,6 +88,16 @@ describe('generateDeepNestedRoutes', () => {
         });
         expect(components).toMatchSnapshot();
     });
+
+    it('should resolve template components from routes', () => {
+        const components = main({
+            basePath: "./tests/route-definitions/ngx-admin",
+            routesFilePath: 'app-routing.module.ts',
+            withServices: true,
+            withNestedTemplateElements: true
+        });
+        expect(components).toMatchSnapshot();
+    });
 });
 
 describe('generateLazyComponents', () => {
@@ -96,6 +106,16 @@ describe('generateLazyComponents', () => {
             basePath: "./tests/route-definitions/real-world",
             routesFilePath: 'app.routes.ts',
             withServices: true
+        });
+        expect(components).toMatchSnapshot();
+    });
+
+    it('should resolve template components from routes', () => {
+        const components = main({
+            basePath: "./tests/route-definitions/real-world",
+            routesFilePath: 'app.routes.ts',
+            withServices: true,
+            withNestedTemplateElements: true
         });
         expect(components).toMatchSnapshot();
     });

@@ -1,6 +1,6 @@
 export const addTemplateElements = (elements) => {
-    elements.forEach(element => {
-        console.log(element)
+    elements.filter(e => e.type = 'component').forEach(c => {
+        console.log(c);
     });
     return elements;
 }
