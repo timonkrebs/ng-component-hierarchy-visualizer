@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
+import { addTemplateElements } from './template-helper';
+
 
 const ROOT_COMPONENT = 'AppComponent';
 
@@ -18,14 +20,17 @@ export const main = (args) => {
     const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const flattenedRoutes = flattenRoutes(routes);
-    let components = resolveComponents(flattenedRoutes, routesFileContent);
-    
-    if(args.withServices){
-        const dependencies = addDependencies(components);
-        return generateMermaid(dependencies);
+    let elements = resolveComponents(flattenedRoutes, routesFileContent);
+
+    if (args.withNestedTemplateElements) {
+        elements = addTemplateElements(elements);
     }
-    
-    return generateMermaid(components);
+
+    if (args.withServices) {
+        elements = addServices(elements);
+    }
+
+    return generateMermaid(elements);
 };
 
 export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
@@ -64,19 +69,19 @@ export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
             ''
         )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
-        //    This matches routes with the pattern `() => import(path).then(m => m.componentType)`
-        //    and transforms them into `{ path, componentType, parent }` objects
+        //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
+        //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
             /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+),?\s*\)/g,
-            `$1, componentType: "$3", parent: "${rootName}"`
+            `$1, componentName: "$3", parent: "${rootName}"`
         )
-        // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentType) with Simplified Syntax:
+        // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path)` and 
-        //    transforms them into `{ path, componentType, parent }` objects
-        //    It uses the path also as the componentType
+        //    transforms them into `{ path, componentName, parent }` objects
+        //    It uses the path also as the componentName
         .replace(
             /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
-            `$1, componentType: $1, parent: "${rootName}"`
+            `$1, componentName: $1, parent: "${rootName}"`
         )
         // 4. Handle Routes with the 'component' Property:
         //    This matches routes with the pattern `component: SomeComponent`
@@ -152,11 +157,11 @@ const handleLoadChildren = (route) => {
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         const r = extractRoutesFromTS(routesFileContent, route.path);
         // Add connection from module to path
-        routes = [{ componentType: route.path, path: thisPath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+        routes = [{ componentName: route.path, path: thisPath, parent: route.componentName, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     } else {
         const r = extractRoutesFromTS(routesFileContent, route.path);
         // Add connection from module to path
-        routes = [{ componentType: route.path, path: relativePath, parent: route.componentType, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+        routes = [{ componentName: route.path, path: relativePath, parent: route.componentName, lazy: false, type: 'module', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     }
 
     const flattenedRoutes = flattenRoutes(routes)
@@ -167,7 +172,7 @@ const handleLoadChildren = (route) => {
     const components = resolveComponents(flattenedRoutes, routesFileContent, relativePath);
 
     // Add connection to module
-    return [...components, { componentType: route.componentType, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true, module: true }];
+    return [...components, { componentName: route.componentName, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true, module: true }];
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
@@ -177,14 +182,14 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const modulePath = match[2];
         const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
-        return [{ path: route.path, loadComponent, componentType: route.component, parent: route.parent, lazy: false, type: 'component' }];
+        return [{ path: route.path, loadComponent, componentName: route.component, parent: route.parent, lazy: false, type: 'component' }];
     } else if (!route.hasOwnProperty('redirectTo')) {
         console.error(`Could not find path for component: ${route.component}`);
         return [null];
     }
 };
 
-export const addDependencies = (components, recursionDepth = 0) => {
+export const addServices = (components, recursionDepth = 0) => {
     const services = components
         .filter(c => !c.skipLoadingDependencies)
         .flatMap(c => {
@@ -207,7 +212,7 @@ const loadAllServices = (componentCode, parent, recursionDepth = 0) => {
         return uniqueByProperty(services);
     }
 
-    return addDependencies(uniqueByProperty(services), recursionDepth + 1);
+    return addServices(uniqueByProperty(services), recursionDepth + 1);
 };
 
 const loadAllInjectedServices = (componentCode, parent) => {
@@ -236,10 +241,10 @@ const createService = (serviceName, componentCode, parent) => {
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
     const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[2]));
 
-    return { componentType: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentType, lazy: false, type: 'service' };
+    return { componentName: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentName, lazy: false, type: 'service' };
 };
 
-const uniqueByProperty = (arr) => [...new Map(arr.map(item => [item.componentType + item.parent, item])).values()];
+const uniqueByProperty = (arr) => [...new Map(arr.map(item => [item.componentName + item.parent, item])).values()];
 
 export const generateMermaid = (routes) => {
     const lines = routes.map(r => {
@@ -252,13 +257,11 @@ export const generateMermaid = (routes) => {
             l.push(`subgraph ${r.parent ?? 'empty'}`);
             l.push('direction LR');
         } else if (r.lazy) {
-            l.push(r.type === 'service'
-                ? `${r.parent ?? 'empty'} -.-> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent ?? 'empty'} -.-> ${r.componentType}(${r.componentType})`);
+            l.push(`${r.parent ?? 'empty'} -.-o ${r.componentName}(${r.componentName})`);
         } else {
             l.push(r.type === 'service'
-                ? `${r.parent ?? 'empty'} --> ${r.componentType}{{${r.componentType}}}`
-                : `${r.parent ?? 'empty'} --> ${r.componentType}(${r.componentType})`);
+                ? `${r.parent ?? 'empty'} --> ${r.componentName}{{${r.componentName}}}`
+                : `${r.parent ?? 'empty'} --o ${r.componentName}(${r.componentName})`);
         }
 
         return l.join('\n');

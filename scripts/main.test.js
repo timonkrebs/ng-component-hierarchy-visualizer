@@ -1,4 +1,4 @@
-import { extractRoutesFromTS, flattenRoutes, resolveComponents, addDependencies, generateMermaid, main } from './helper'; // Adjust the path as needed
+import { extractRoutesFromTS, flattenRoutes, resolveComponents, addServices, generateMermaid, main } from './helper'; // Adjust the path as needed
 
 describe('extractRoutesFromTS', () => {
     it('should extract routes from TypeScript content', () => {
@@ -53,7 +53,7 @@ describe('resolveComponents', () => {
     });
 });
 
-describe('addDependencies', () => {
+describe('addServices', () => {
     it('should add dependencies to components', () => {
         const components = [
             { path: '', loadComponent: './home.component', componentType: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
@@ -61,7 +61,7 @@ describe('addDependencies', () => {
         const expectedDependencies = [
             { path: '', loadComponent: './home.component', componentType: 'HomeComponent', parent: 'AppComponent', lazy: false, type: 'component' }
         ];
-        const dependencies = addDependencies(components);
+        const dependencies = addServices(components);
         expect(dependencies).toEqual(expectedDependencies);
     });
 });
@@ -73,7 +73,7 @@ describe('generateMermaid', () => {
         ];
         const expectedOutput = `
 flowchart LR
-AppComponent --> HomeComponent(HomeComponent)
+AppComponent --o HomeComponent(HomeComponent)
         `.trim();
         expect(generateMermaid(routes)).toEqual(expectedOutput);
     });
