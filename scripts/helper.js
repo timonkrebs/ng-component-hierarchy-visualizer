@@ -259,7 +259,7 @@ export const generateMermaid = (routes) => {
         } else if (r.lazy) {
             l.push(`${r.parent ?? 'empty'} -.-o ${r.componentName}(${r.componentName})`);
         } else {
-            l.push(r.type === 'service'
+            l.push(r.type === 'service' || r.type === 'import'
                 ? `${r.parent ?? 'empty'} --> ${r.componentName}{{${r.componentName}}}`
                 : `${r.parent ?? 'empty'} --o ${r.componentName}(${r.componentName})`);
         }

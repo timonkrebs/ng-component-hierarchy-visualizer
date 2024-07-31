@@ -251,17 +251,33 @@ ProfileComponent --> ProfileService{{ProfileService}}
 exports[`generateLazyComponents should resolve template components from routes 1`] = `
 "flowchart LR
 AppComponent -.-o ./features/article/pages/home/home.component(./features/article/pages/home/home.component)
+./features/article/pages/home/home.component --> ArticleListComponent{{ArticleListComponent}}
+./features/article/pages/home/home.component --> RxLet{{RxLet}}
+./features/article/pages/home/home.component --> IfAuthenticatedDirective{{IfAuthenticatedDirective}}
 AppComponent -.-o ./core/auth/auth.component(./core/auth/auth.component)
+./core/auth/auth.component --> ListErrorsComponent{{ListErrorsComponent}}
 AppComponent -.-o ./features/settings/settings.component(./features/settings/settings.component)
+./features/settings/settings.component --> ListErrorsComponent{{ListErrorsComponent}}
 subgraph ./features/profile/profile.routes
 direction LR
 profile -.-o ./components/profile-articles.component(./components/profile-articles.component)
+./components/profile-articles.component --> ArticleListComponent{{ArticleListComponent}}
 profile -.-o ./components/profile-favorites.component(./components/profile-favorites.component)
+./components/profile-favorites.component --> ArticleListComponent{{ArticleListComponent}}
 profile --o ProfileComponent(ProfileComponent)
+ProfileComponent --> FollowButtonComponent{{FollowButtonComponent}}
 end
 AppComponent -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
 AppComponent -.-o ./features/article/pages/editor/editor.component(./features/article/pages/editor/editor.component)
+./features/article/pages/editor/editor.component --> ListErrorsComponent{{ListErrorsComponent}}
 AppComponent -.-o ./features/article/pages/article/article.component(./features/article/pages/article/article.component)
+./features/article/pages/article/article.component --> ArticleMetaComponent{{ArticleMetaComponent}}
+./features/article/pages/article/article.component --> FollowButtonComponent{{FollowButtonComponent}}
+./features/article/pages/article/article.component --> FavoriteButtonComponent{{FavoriteButtonComponent}}
+./features/article/pages/article/article.component --> MarkdownPipe{{MarkdownPipe}}
+./features/article/pages/article/article.component --> ListErrorsComponent{{ListErrorsComponent}}
+./features/article/pages/article/article.component --> ArticleCommentComponent{{ArticleCommentComponent}}
+./features/article/pages/article/article.component --> IfAuthenticatedDirective{{IfAuthenticatedDirective}}
 ./features/article/pages/home/home.component --> TagsService{{TagsService}}
 ./features/article/pages/home/home.component --> UserService{{UserService}}
 UserService --> JwtService{{JwtService}}

@@ -25,6 +25,7 @@ generate-hierarchy [path-to-routes-file] --withServices
 ```
 - Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
 - Use --withServices to include services in the output. (ignores Angular services for clarity)
+- Use --withNestedTemplateElements to include importet standalone elements (components, pipes, directives) in the output. (ignores Angular elements for clarity)
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
