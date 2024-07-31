@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import path from 'path';
-import { main } from './helper'; // Adjust the path as needed
+import { main } from './helper.js'; // Adjust the path as needed
 
 const parseArguments = (argv) => {
     const args = {
@@ -14,7 +14,7 @@ const parseArguments = (argv) => {
         const element = argv[index];
         if ("--withservices" === element?.trim().toLowerCase()) {
             args.withServices = true;
-        } else if ("--withNestedTemplateElements" === element?.trim().toLowerCase()) {
+        } else if ("--withnestedtemplateelements" === element?.trim().toLowerCase()) {
             args.withNestedTemplateElements = true;
         } else if (element?.trim().toLowerCase().startsWith("--basepath=")) {
             args.basePath = path.join(process.env.INIT_CWD ?? process.cwd(), element?.trim().slice(11));

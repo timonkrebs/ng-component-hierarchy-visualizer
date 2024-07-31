@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
-import { addTemplateElements } from './template-helper';
+import { addTemplateElements } from './template-helper.js';
 
 
 const ROOT_COMPONENT = 'AppComponent';
