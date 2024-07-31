@@ -45,4 +45,4 @@ Thumbs.db
 # Tests
 /tests
 *.test.js
-/__snapshots__
+*/__snapshots__
