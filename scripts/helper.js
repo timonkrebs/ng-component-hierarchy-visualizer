@@ -22,9 +22,7 @@ export const main = (args) => {
     const flattenedRoutes = flattenRoutes(routes);
     let elements = resolveComponents(flattenedRoutes, routesFileContent);
 
-    if (args.withNestedTemplateElements) {
-        elements = addTemplateElements(elements);
-    }
+    elements = addTemplateElements(elements, args.withNestedTemplateElements);
 
     if (args.withServices) {
         elements = addServices(elements);
@@ -72,7 +70,7 @@ export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
-            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*(\w+)\s*=>\s*\2\.(\w+),?\s*\)/g,
+            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
             `$1, componentName: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:

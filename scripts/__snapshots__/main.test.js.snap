@@ -220,76 +220,76 @@ NotFoundComponent --- NbMenuService{{NbMenuService}}"
 
 exports[`generateLazyComponents should resolve components from routes 1`] = `
 "flowchart LR
-AppComponent -.-o ./features/article/pages/home/home.component(./features/article/pages/home/home.component)
-AppComponent -.-o ./core/auth/auth.component(./core/auth/auth.component)
-AppComponent -.-o ./features/settings/settings.component(./features/settings/settings.component)
+AppComponent -.-o HomeComponent(HomeComponent)
+AppComponent -.-o AuthComponent(AuthComponent)
+AppComponent -.-o SettingsComponent(SettingsComponent)
 subgraph ./features/profile/profile.routes
 direction LR
-profile -.-o ./components/profile-articles.component(./components/profile-articles.component)
-profile -.-o ./components/profile-favorites.component(./components/profile-favorites.component)
+profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
+profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
 profile --o ProfileComponent(ProfileComponent)
 end
 AppComponent -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-AppComponent -.-o ./features/article/pages/editor/editor.component(./features/article/pages/editor/editor.component)
-AppComponent -.-o ./features/article/pages/article/article.component(./features/article/pages/article/article.component)
-./features/article/pages/home/home.component --- TagsService{{TagsService}}
-./features/article/pages/home/home.component --- UserService{{UserService}}
+AppComponent -.-o EditorComponent(EditorComponent)
+AppComponent -.-o ArticleComponent(ArticleComponent)
+HomeComponent --- TagsService{{TagsService}}
+HomeComponent --- UserService{{UserService}}
 UserService --- JwtService{{JwtService}}
-./core/auth/auth.component --- UserService{{UserService}}
-./features/settings/settings.component --- UserService{{UserService}}
-./components/profile-articles.component --- ProfileService{{ProfileService}}
-./components/profile-favorites.component --- ProfileService{{ProfileService}}
+AuthComponent --- UserService{{UserService}}
+SettingsComponent --- UserService{{UserService}}
+ProfileArticlesComponent --- ProfileService{{ProfileService}}
+ProfileFavoritesComponent --- ProfileService{{ProfileService}}
 ProfileComponent --- UserService{{UserService}}
 ProfileComponent --- ProfileService{{ProfileService}}
-./features/article/pages/editor/editor.component --- ArticlesService{{ArticlesService}}
-./features/article/pages/editor/editor.component --- UserService{{UserService}}
-./features/article/pages/article/article.component --- ArticlesService{{ArticlesService}}
-./features/article/pages/article/article.component --- CommentsService{{CommentsService}}
-./features/article/pages/article/article.component --- UserService{{UserService}}"
+EditorComponent --- ArticlesService{{ArticlesService}}
+EditorComponent --- UserService{{UserService}}
+ArticleComponent --- ArticlesService{{ArticlesService}}
+ArticleComponent --- CommentsService{{CommentsService}}
+ArticleComponent --- UserService{{UserService}}"
 `;
 
 exports[`generateLazyComponents should resolve template components from routes 1`] = `
 "flowchart LR
-AppComponent -.-o ./features/article/pages/home/home.component(./features/article/pages/home/home.component)
-./features/article/pages/home/home.component ---ArticleListComponent([ArticleListComponent])
-./features/article/pages/home/home.component ---RxLet([RxLet])
-./features/article/pages/home/home.component ---IfAuthenticatedDirective([IfAuthenticatedDirective])
-AppComponent -.-o ./core/auth/auth.component(./core/auth/auth.component)
-./core/auth/auth.component ---ListErrorsComponent([ListErrorsComponent])
-AppComponent -.-o ./features/settings/settings.component(./features/settings/settings.component)
-./features/settings/settings.component ---ListErrorsComponent([ListErrorsComponent])
+AppComponent -.-o HomeComponent(HomeComponent)
+HomeComponent ---ArticleListComponent([ArticleListComponent])
+HomeComponent ---RxLet([RxLet])
+HomeComponent ---IfAuthenticatedDirective([IfAuthenticatedDirective])
+AppComponent -.-o AuthComponent(AuthComponent)
+AuthComponent ---ListErrorsComponent([ListErrorsComponent])
+AppComponent -.-o SettingsComponent(SettingsComponent)
+SettingsComponent ---ListErrorsComponent([ListErrorsComponent])
 subgraph ./features/profile/profile.routes
 direction LR
-profile -.-o ./components/profile-articles.component(./components/profile-articles.component)
-./components/profile-articles.component ---ArticleListComponent([ArticleListComponent])
-profile -.-o ./components/profile-favorites.component(./components/profile-favorites.component)
-./components/profile-favorites.component ---ArticleListComponent([ArticleListComponent])
+profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
+ProfileArticlesComponent ---ArticleListComponent([ArticleListComponent])
+profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
+ProfileFavoritesComponent ---ArticleListComponent([ArticleListComponent])
 profile --o ProfileComponent(ProfileComponent)
 ProfileComponent ---FollowButtonComponent([FollowButtonComponent])
 end
 AppComponent -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-AppComponent -.-o ./features/article/pages/editor/editor.component(./features/article/pages/editor/editor.component)
-./features/article/pages/editor/editor.component ---ListErrorsComponent([ListErrorsComponent])
-AppComponent -.-o ./features/article/pages/article/article.component(./features/article/pages/article/article.component)
-./features/article/pages/article/article.component ---ArticleMetaComponent([ArticleMetaComponent])
-./features/article/pages/article/article.component ---FollowButtonComponent([FollowButtonComponent])
-./features/article/pages/article/article.component ---FavoriteButtonComponent([FavoriteButtonComponent])
-./features/article/pages/article/article.component ---MarkdownPipe([MarkdownPipe])
-./features/article/pages/article/article.component ---ListErrorsComponent([ListErrorsComponent])
-./features/article/pages/article/article.component ---ArticleCommentComponent([ArticleCommentComponent])
-./features/article/pages/article/article.component ---IfAuthenticatedDirective([IfAuthenticatedDirective])
-./features/article/pages/home/home.component --- TagsService{{TagsService}}
-./features/article/pages/home/home.component --- UserService{{UserService}}
+AppComponent -.-o EditorComponent(EditorComponent)
+EditorComponent ---ListErrorsComponent([ListErrorsComponent])
+AppComponent -.-o ArticleComponent(ArticleComponent)
+ArticleComponent ---ArticleMetaComponent([ArticleMetaComponent])
+ArticleComponent ---FollowButtonComponent([FollowButtonComponent])
+ArticleComponent ---FavoriteButtonComponent([FavoriteButtonComponent])
+ArticleComponent ---MarkdownPipe([MarkdownPipe])
+ArticleComponent ---ListErrorsComponent([ListErrorsComponent])
+ArticleComponent ---ArticleCommentComponent([ArticleCommentComponent])
+ArticleComponent ---IfAuthenticatedDirective([IfAuthenticatedDirective])
+HomeComponent --- TagsService{{TagsService}}
+HomeComponent --- UserService{{UserService}}
 UserService --- JwtService{{JwtService}}
-./core/auth/auth.component --- UserService{{UserService}}
-./features/settings/settings.component --- UserService{{UserService}}
-./components/profile-articles.component --- ProfileService{{ProfileService}}
-./components/profile-favorites.component --- ProfileService{{ProfileService}}
+AuthComponent --- UserService{{UserService}}
+SettingsComponent --- UserService{{UserService}}
+ProfileArticlesComponent --- ProfileService{{ProfileService}}
+ProfileFavoritesComponent --- ProfileService{{ProfileService}}
 ProfileComponent --- UserService{{UserService}}
 ProfileComponent --- ProfileService{{ProfileService}}
-./features/article/pages/editor/editor.component --- ArticlesService{{ArticlesService}}
-./features/article/pages/editor/editor.component --- UserService{{UserService}}
-./features/article/pages/article/article.component --- ArticlesService{{ArticlesService}}
-./features/article/pages/article/article.component --- CommentsService{{CommentsService}}
-./features/article/pages/article/article.component --- UserService{{UserService}}"
+EditorComponent --- ArticlesService{{ArticlesService}}
+EditorComponent --- UserService{{UserService}}
+ArticleComponent --- ArticlesService{{ArticlesService}}
+ArticleComponent --- CommentsService{{CommentsService}}
+ArticleComponent --- UserService{{UserService}}"
 `;

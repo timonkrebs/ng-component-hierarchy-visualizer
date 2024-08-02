@@ -1,6 +1,6 @@
 {
   "name": "@tsharp/ng-component-hierarchy-visualizer",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "generate mermaid representations of your angular component hierarchy",
   "keywords": [
     "angular",

@@ -1,16 +1,16 @@
 import fs from 'node:fs';
 import path from 'path';
 
-export const addTemplateElements = (elements, recursionDepth = 0) => {
+export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
     if (recursionDepth > 5) {
         return elements;
     }
     return elements
-        .flatMap(loadDependencies);
+        .flatMap(e => loadDependencies(e, withNestedTemplateElements, recursionDepth));
 }
 
 
-const loadDependencies = (c, recursionDepth) => {
+const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
     if (c.type !== 'component' || !c.loadComponent) {
         return [c];
     }
@@ -24,6 +24,17 @@ const loadDependencies = (c, recursionDepth) => {
 
     const importsRegex = /@Component\([\s\S]*?imports:\s*(\[[^\]]+\])/;
     const match = importsRegex.exec(fileContent);
+
+    const componentNameRegex = /export\s+(?:default\s+)?class\s+(\w+)/g;
+    const nameMatches = [...fileContent.matchAll(componentNameRegex)];
+
+    if (nameMatches.length === 1) {
+        c.componentName = nameMatches[0][1];
+    }
+
+    if (!withNestedTemplateElements) {
+        return [c];
+    }
 
     if (match) {
         let importsContent = match[1]; // Contains the raw import names
