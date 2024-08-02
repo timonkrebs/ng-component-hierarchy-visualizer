@@ -21,19 +21,19 @@ Navigate to the directory that contains the routes from which the graph should b
 
 ```bash
 cd src/app
-generate-hierarchy [path-to-routes-file] --withServices
+ng-route-hierarchy [path-to-routes-file] --withServices
 ```
 - Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
-- Use --withServices to include services in the output. (ignores Angular services for clarity)
+- Use --withServices to include injected services in the output. (ignores Angular services for clarity)
 - Use --withNestedTemplateElements to include importet standalone elements (components, pipes, directives) in the output. (ignores Angular elements for clarity)
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
-1. go to https://stackblitz.com/edit/bqtvoz-qegzax?file=package.json
+1. go to https://stackblitz.com/edit/bqtvoz-emxakr?file=package.json
 2. wait until dependencies are installed and run following commands in the stackblitz terminal
 ```
 cd src/app
-npm run generate-hierarchy
+npm run ng-route-hierarchy
 ```
 3. copy output to https://mermaid.live/
 

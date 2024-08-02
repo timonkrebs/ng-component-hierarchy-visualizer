@@ -1,6 +1,6 @@
 {
   "name": "@tsharp/ng-component-hierarchy-visualizer",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "generate mermaid representations of your angular component hierarchy",
   "keywords": [
     "angular",
@@ -12,7 +12,7 @@
     "mermaid js"
   ],
   "bin": {
-    "generate-hierarchy": "scripts/generate.js"
+    "ng-route-hierarchy": "scripts/generate.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"

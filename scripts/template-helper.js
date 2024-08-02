@@ -22,9 +22,6 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
 
     const fileContent = fs.readFileSync(p, 'utf-8');
 
-    const importsRegex = /@Component\([\s\S]*?imports:\s*(\[[^\]]+\])/;
-    const match = importsRegex.exec(fileContent);
-
     const componentNameRegex = /export\s+(?:default\s+)?class\s+(\w+)/g;
     const nameMatches = [...fileContent.matchAll(componentNameRegex)];
 
@@ -36,25 +33,33 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
         return [c];
     }
 
+    const components = [];
+    
+    const importsRegex = /@Component\([\s\S]*?imports:\s*(\[[^\]]+\])/;
+    const match = importsRegex.exec(fileContent);
     if (match) {
-        let importsContent = match[1]; // Contains the raw import names
+        try {
+            let importsContent = match[1]; // Contains the raw import names
 
-        // Step 2: Wrap each import name with "importName"
-        importsContent = importsContent
-            .replace(/\b([^,]+)\b/g, '"$1"')
-            .replaceAll(/\,(?=\s*?[\}\]])/g, "");
+            // Step 2: Wrap each import name with "importName"
+            importsContent = importsContent
+                .replace(/\b([^,]+)\b/g, '"$1"')
+                .replaceAll(/\,(?=\s*?[\}\]])/g, "");
 
-        const json = JSON.parse(importsContent);
-        const components = [];
-        json.forEach(componentName => {
-            const comp = handleComponent(componentName, fileContent, c.componentName, path.relative(cwd, p));
-            if (comp) {
-                components.push(comp)
-            }
-        });
+            const json = JSON.parse(importsContent);
 
-        const x = addTemplateElements(components, recursionDepth + 1);
-        return [c, ...x];
+            json.forEach(componentName => {
+                const comp = handleComponent(componentName, fileContent, c.componentName, path.relative(cwd, p));
+                if (comp) {
+                    components.push(comp)
+                }
+            });
+
+            const x = addTemplateElements(components, recursionDepth + 1);
+            return [c, ...x];
+        } catch { 
+            console.error(`Could not resolve imports for component: ${c.componentName}`);
+        }
     }
 
     return [c];
