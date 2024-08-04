@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
-import { parse } from 'acorn-loose';
+import { parse } from '@typescript-eslint/typescript-estree';
 
 export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
     if (recursionDepth > 5) {
@@ -36,8 +36,9 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
 
     const components = [];
 
-    const importNodes = parse(fileContent, {ecmaVersion: 2020}).body
-        .filter(n => n.type === 'ExpressionStatement' && n.expression.callee?.name === 'Component')?.[0]
+    const importNodes = parse(fileContent).body
+        .filter(n => n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration')?.[0]
+        .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
         .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
         ?.value.elements;
 
