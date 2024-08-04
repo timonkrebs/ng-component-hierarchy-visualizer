@@ -36,16 +36,24 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
 
     const components = [];
 
-    const importNodes = parse(fileContent).body
-        .filter(n => n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration')?.[0]
-        .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
-        .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
-        ?.value.elements;
+    const importNodes = parse(fileContent, { range: true }).body
+        .filter(n => n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration')?.flatMap(n => n
+            .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
+            .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
+            ?.value.elements);
 
-    if (importNodes) {
+    const provideRouter = importNodes.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
+    const identifierNodes = importNodes.filter(n => n?.type === 'Identifier');
+
+    if (provideRouter?.type === 'ObjectExpression') {
+        // ToDo: add routes
+        // console.log(provideRouter.properties)
+    }
+
+    if (identifierNodes?.length) {
         try {
             // ToDo: handle provideRouter
-            const importsContent = importNodes.filter(n => n.name).map(e => e.name);
+            const importsContent = identifierNodes.map(e => e.name);
 
             importsContent.forEach(componentName => {
                 const comp = handleComponent(componentName, fileContent, c.componentName, path.relative(cwd, p));

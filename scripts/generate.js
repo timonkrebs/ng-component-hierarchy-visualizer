@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import path from 'path';
-import { main } from './helper.js'; // Adjust the path as needed
+import { main } from './main.helper.js'; // Adjust the path as needed
 
 const parseArguments = (argv) => {
     const args = {

@@ -1,9 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
 import { addTemplateElements } from './template-helper.js';
-
-
-const ROOT_COMPONENT = 'AppComponent';
+import { extractRoutesFromTS } from './route.helper.js'
 
 const ROUTES_REGEX_LIST = [
     /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m,
@@ -18,7 +16,8 @@ const ROUTES_REGEX_LIST = [
 export const main = (args) => {
     process.env.INIT_CWD = args.basePath;
     const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
-    const routes = extractRoutesFromTS(routesFileContent);
+    const match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
+    const routes = extractRoutesFromTS(match[1]);
     const flattenedRoutes = flattenRoutes(routes);
     let elements = resolveComponents(flattenedRoutes, routesFileContent);
 
@@ -31,87 +30,7 @@ export const main = (args) => {
     return generateMermaid(elements);
 };
 
-export const extractRoutesFromTS = (fileContent, rootName = ROOT_COMPONENT) => {
-    const match = ROUTES_REGEX_LIST.map(regex => fileContent.match(regex)).find(match => match);
-    if (!match) throw new Error('Routes not found in the provided file content.');
 
-    const wrappedRoutesString = match[1]
-        // 1. Remove canActivate Guards:
-        .replace(
-            /canActivate:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.2 Remove canMatch Guards:
-        .replace(
-            /canActivateChild:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.3 Remove canDeactivate Guards:
-        .replace(
-            /canDeactivate:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.4 Remove canMatch Guards:
-        .replace(
-            /canMatch:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.5 Remove data:
-        .replace(
-            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
-            ''
-        )
-        // 1.6 Remove resolve:
-        .replace(
-            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
-            ''
-        )
-        // 2. Replace Lazy Loaded Routes with Simplified Syntax:
-        //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
-        //    and transforms them into `{ path, componentName, parent }` objects
-        .replace(
-            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
-            `$1, componentName: "$3", parent: "${rootName}"`
-        )
-        // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
-        //    This matches routes with the pattern `() => import(path)` and 
-        //    transforms them into `{ path, componentName, parent }` objects
-        //    It uses the path also as the componentName
-        .replace(
-            /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
-            `$1, componentName: $1, parent: "${rootName}"`
-        )
-        // 4. Handle Routes with the 'component' Property:
-        //    This matches routes with the pattern `component: SomeComponent`
-        //    and adds the 'parent' property to them
-        .replace(
-            /(component:\s*)(\w+)/g,
-            `$1"$2", parent: "${rootName}"`
-        )
-        // 5. Remove Newlines and Carriage Returns:
-        //    This simplifies the string for further processing
-        .replace(
-            /(\r\n|\n|\r)/gm,
-            ""
-        )
-        // 6. Convert Keys to strings
-        .replace(
-            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g,
-            '"$1"'
-        )
-        // 7. Convert Values wrapped in single quotes to strings
-        .replaceAll(
-            "'",
-            '"'
-        )
-        // 8.remove all trailing commas
-        .replaceAll(
-            /\,(?=\s*?[\}\]])/g,
-            "");
-
-    const routes = JSON.parse(wrappedRoutesString)
-    return routes;
-};
 
 export const flattenRoutes = (routes) =>
     routes.flatMap(r => r.children
@@ -145,7 +64,7 @@ const handleLoadChildren = (route) => {
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
-    const match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
+    let match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
 
     let routes = [];
     // if routes are not configured directly in the module we have to analyze the routing.module
@@ -153,11 +72,12 @@ const handleLoadChildren = (route) => {
         const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
-        const r = extractRoutesFromTS(routesFileContent, route.path);
+        match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
+        const r = extractRoutesFromTS(match[1], route.path);
         // Add connection from module to path
         routes = [{ componentName: route.path, path: thisPath, parent: route.componentName, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     } else {
-        const r = extractRoutesFromTS(routesFileContent, route.path);
+        const r = extractRoutesFromTS(match[1], route.path);
         // Add connection from module to path
         routes = [{ componentName: route.path, path: relativePath, parent: route.componentName, lazy: false, type: 'module', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     }
@@ -260,8 +180,8 @@ export const generateMermaid = (routes) => {
             l.push(r.type === 'service'
                 ? `${r.parent ?? 'empty'} --- ${r.componentName}{{${r.componentName}}}`
                 : r.type === 'import'
-                ? `${r.parent ?? 'empty'} ---${r.componentName}([${r.componentName}])`
-                : `${r.parent ?? 'empty'} --o ${r.componentName}(${r.componentName})`);
+                    ? `${r.parent ?? 'empty'} ---${r.componentName}([${r.componentName}])`
+                    : `${r.parent ?? 'empty'} --o ${r.componentName}(${r.componentName})`);
         }
 
         return l.join('\n');

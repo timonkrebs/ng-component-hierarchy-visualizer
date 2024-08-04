@@ -1,16 +1,17 @@
-import { extractRoutesFromTS, flattenRoutes, resolveComponents, addServices, generateMermaid, main } from './helper'; // Adjust the path as needed
+import { flattenRoutes, resolveComponents, addServices, generateMermaid, main } from './main.helper'; // Adjust the path as needed
+import { extractRoutesFromTS } from './route.helper.js'
 
 describe('extractRoutesFromTS', () => {
     it('should extract routes from TypeScript content', () => {
         const fileContent = `
-            const routes: Routes = [
+            [
                 { path: '', component: HomeComponent },
                 { path: 'about', component: AboutComponent }
-            ];
+            ]
         `;
         const expectedRoutes = [
-            { path: '', component: 'HomeComponent', parent: 'AppComponent' },
-            { path: 'about', component: 'AboutComponent', parent: 'AppComponent' }
+            { path: '', component: 'HomeComponent', parent: 'Root' },
+            { path: 'about', component: 'AboutComponent', parent: 'Root' }
         ];
         const routes = extractRoutesFromTS(fileContent);
         expect(routes).toEqual(expectedRoutes);

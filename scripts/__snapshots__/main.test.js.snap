@@ -97,13 +97,13 @@ pages -.-o MiscellaneousModule(MiscellaneousModule)
 pages --o NotFoundComponent(NotFoundComponent)
 pages --o PagesComponent(PagesComponent)
 end
-AppComponent -.-o PagesModule(PagesModule)
-AppComponent --o NbLoginComponent(NbLoginComponent)
-AppComponent --o NbRegisterComponent(NbRegisterComponent)
-AppComponent --o NbLogoutComponent(NbLogoutComponent)
-AppComponent --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-AppComponent --o NbResetPasswordComponent(NbResetPasswordComponent)
-AppComponent --o NbAuthComponent(NbAuthComponent)
+Root -.-o PagesModule(PagesModule)
+Root --o NbLoginComponent(NbLoginComponent)
+Root --o NbRegisterComponent(NbRegisterComponent)
+Root --o NbLogoutComponent(NbLogoutComponent)
+Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
+Root --o NbResetPasswordComponent(NbResetPasswordComponent)
+Root --o NbAuthComponent(NbAuthComponent)
 DashboardComponent --- NbThemeService{{NbThemeService}}
 DashboardComponent --- SolarData{{SolarData}}
 NotFoundComponent --- NbMenuService{{NbMenuService}}"
@@ -206,13 +206,13 @@ pages -.-o MiscellaneousModule(MiscellaneousModule)
 pages --o NotFoundComponent(NotFoundComponent)
 pages --o PagesComponent(PagesComponent)
 end
-AppComponent -.-o PagesModule(PagesModule)
-AppComponent --o NbLoginComponent(NbLoginComponent)
-AppComponent --o NbRegisterComponent(NbRegisterComponent)
-AppComponent --o NbLogoutComponent(NbLogoutComponent)
-AppComponent --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-AppComponent --o NbResetPasswordComponent(NbResetPasswordComponent)
-AppComponent --o NbAuthComponent(NbAuthComponent)
+Root -.-o PagesModule(PagesModule)
+Root --o NbLoginComponent(NbLoginComponent)
+Root --o NbRegisterComponent(NbRegisterComponent)
+Root --o NbLogoutComponent(NbLogoutComponent)
+Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
+Root --o NbResetPasswordComponent(NbResetPasswordComponent)
+Root --o NbAuthComponent(NbAuthComponent)
 DashboardComponent --- NbThemeService{{NbThemeService}}
 DashboardComponent --- SolarData{{SolarData}}
 NotFoundComponent --- NbMenuService{{NbMenuService}}"
@@ -220,18 +220,18 @@ NotFoundComponent --- NbMenuService{{NbMenuService}}"
 
 exports[`generateLazyComponents should resolve components from routes 1`] = `
 "flowchart LR
-AppComponent -.-o HomeComponent(HomeComponent)
-AppComponent -.-o AuthComponent(AuthComponent)
-AppComponent -.-o SettingsComponent(SettingsComponent)
+Root -.-o HomeComponent(HomeComponent)
+Root -.-o AuthComponent(AuthComponent)
+Root -.-o SettingsComponent(SettingsComponent)
 subgraph ./features/profile/profile.routes
 direction LR
 profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
 profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
 profile --o ProfileComponent(ProfileComponent)
 end
-AppComponent -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-AppComponent -.-o EditorComponent(EditorComponent)
-AppComponent -.-o ArticleComponent(ArticleComponent)
+Root -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
+Root -.-o EditorComponent(EditorComponent)
+Root -.-o ArticleComponent(ArticleComponent)
 HomeComponent --- TagsService{{TagsService}}
 HomeComponent --- UserService{{UserService}}
 UserService --- JwtService{{JwtService}}
@@ -250,13 +250,13 @@ ArticleComponent --- UserService{{UserService}}"
 
 exports[`generateLazyComponents should resolve template components from routes 1`] = `
 "flowchart LR
-AppComponent -.-o HomeComponent(HomeComponent)
+Root -.-o HomeComponent(HomeComponent)
 HomeComponent ---ArticleListComponent([ArticleListComponent])
 HomeComponent ---RxLet([RxLet])
 HomeComponent ---IfAuthenticatedDirective([IfAuthenticatedDirective])
-AppComponent -.-o AuthComponent(AuthComponent)
+Root -.-o AuthComponent(AuthComponent)
 AuthComponent ---ListErrorsComponent([ListErrorsComponent])
-AppComponent -.-o SettingsComponent(SettingsComponent)
+Root -.-o SettingsComponent(SettingsComponent)
 SettingsComponent ---ListErrorsComponent([ListErrorsComponent])
 subgraph ./features/profile/profile.routes
 direction LR
@@ -267,10 +267,10 @@ ProfileFavoritesComponent ---ArticleListComponent([ArticleListComponent])
 profile --o ProfileComponent(ProfileComponent)
 ProfileComponent ---FollowButtonComponent([FollowButtonComponent])
 end
-AppComponent -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-AppComponent -.-o EditorComponent(EditorComponent)
+Root -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
+Root -.-o EditorComponent(EditorComponent)
 EditorComponent ---ListErrorsComponent([ListErrorsComponent])
-AppComponent -.-o ArticleComponent(ArticleComponent)
+Root -.-o ArticleComponent(ArticleComponent)
 ArticleComponent ---ArticleMetaComponent([ArticleMetaComponent])
 ArticleComponent ---FollowButtonComponent([FollowButtonComponent])
 ArticleComponent ---FavoriteButtonComponent([FavoriteButtonComponent])
