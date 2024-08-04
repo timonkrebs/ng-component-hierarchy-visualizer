@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
+import { parse } from 'acorn-loose';
 
 export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
     if (recursionDepth > 5) {
@@ -34,21 +35,18 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
     }
 
     const components = [];
-    
-    const importsRegex = /@Component\([\s\S]*?imports:\s*(\[[^\]]+\])/;
-    const match = importsRegex.exec(fileContent);
-    if (match) {
+
+    const importNodes = parse(fileContent, {ecmaVersion: 2020}).body
+        .filter(n => n.type === 'ExpressionStatement' && n.expression.callee?.name === 'Component')?.[0]
+        .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
+        ?.value.elements;
+
+    if (importNodes) {
         try {
-            let importsContent = match[1]; // Contains the raw import names
+            // ToDo: handle provideRouter
+            const importsContent = importNodes.filter(n => n.name).map(e => e.name);
 
-            // Step 2: Wrap each import name with "importName"
-            importsContent = importsContent
-                .replace(/\b([^,]+)\b/g, '"$1"')
-                .replaceAll(/\,(?=\s*?[\}\]])/g, "");
-
-            const json = JSON.parse(importsContent);
-
-            json.forEach(componentName => {
+            importsContent.forEach(componentName => {
                 const comp = handleComponent(componentName, fileContent, c.componentName, path.relative(cwd, p));
                 if (comp) {
                     components.push(comp)
@@ -57,7 +55,7 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
 
             const x = addTemplateElements(components, recursionDepth + 1);
             return [c, ...x];
-        } catch { 
+        } catch {
             console.error(`Could not resolve imports for component: ${c.componentName}`);
         }
     }
