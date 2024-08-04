@@ -1,10 +1,11 @@
 import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
-import { extractRoutesFromTS } from './route.helper.js'
+import { extractRoutesFromTS } from './route.helper.js';
+import { flattenRoutes, resolveComponents } from './component.helper.js';
 
 export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
-    if (recursionDepth > 5) {
+    if (recursionDepth > 10) {
         return elements;
     }
     return elements
@@ -31,29 +32,22 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
         c.componentName = nameMatches[0][1];
     }
 
-    if (!withNestedTemplateElements) {
-        return [c];
-    }
-
-    const components = [];
-
     const importNodes = parse(fileContent, { range: true }).body
         .filter(n => n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration')?.flatMap(n => n
             .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
             .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
             ?.value.elements);
 
-    const provideRouter = importNodes.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
-    const identifierNodes = importNodes.filter(n => n?.type === 'Identifier');
+    const components = handleRoutes(importNodes, fileContent, withNestedTemplateElements, path.join(path.relative(cwd, p), "../"), c.componentName, recursionDepth);
 
-    if (provideRouter?.type === 'ObjectExpression') {
-        // ToDo: add routes
-        // console.log(provideRouter.properties)
+    if (!withNestedTemplateElements) {
+        return [c, ...components];
     }
+
+    const identifierNodes = importNodes.filter(n => n?.type === 'Identifier');
 
     if (identifierNodes?.length) {
         try {
-            // ToDo: handle provideRouter
             const importsContent = identifierNodes.map(e => e.name);
 
             importsContent.forEach(componentName => {
@@ -70,7 +64,23 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
         }
     }
 
-    return [c];
+    return [c, ...components];
+}
+
+const handleRoutes = (importNodes, fileContent, withNestedTemplateElements, p, componentName, recursionDepth) => {
+    const provideRouter = importNodes.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
+
+    if (provideRouter?.type === 'ArrayExpression') {
+        const routes = extractRoutesFromTS(fileContent.substring(...provideRouter.range), componentName);
+        const flattenedRoutes = flattenRoutes(routes);
+
+        const cwd = process.env.INIT_CWD ?? process.cwd();
+        const resolvedComponents = resolveComponents(flattenedRoutes, fileContent, p);
+
+        return resolvedComponents.flatMap(c => loadDependencies(c, withNestedTemplateElements, recursionDepth));
+    }
+
+    return [];
 }
 
 const handleComponent = (componentName, routesFileContent, parent, relativePath = null) => {
