@@ -1,6 +1,7 @@
-import { addServices, generateMermaid, main } from './main.helper'; // Adjust the path as needed
-import { extractRoutesFromTS } from './route.helper.js'
-import { flattenRoutes, resolveComponents } from './component.helper.js'
+import { generateMermaid, main } from './main.helper';
+import { extractRoutesFromTS } from './route.helper.js';
+import { flattenRoutes, resolveComponents } from './component.helper.js';
+import { addServices } from './service.helper.js';
 
 describe('extractRoutesFromTS', () => {
     it('should extract routes from TypeScript content', () => {
