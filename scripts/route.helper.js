@@ -8,7 +8,7 @@ export const extractRouteRanges = (routesFileContent) => {
     ast.body.some((node) => {
         if (node?.type === 'VariableDeclaration' && node.declarations?.length) {
             const routesRanges = extractVariableDeclaration(node.declarations);
-            if(routesRanges?.length){
+            if (routesRanges?.length) {
                 ranges.push(...routesRanges);
                 return true;
             }
@@ -20,7 +20,7 @@ export const extractRouteRanges = (routesFileContent) => {
                     const typeAnnotation = declaration.id?.typeAnnotation?.typeAnnotation;
                     if (node.declaration?.type === 'VariableDeclaration' && node.declaration.declarations?.length) {
                         const routesRanges = extractVariableDeclaration(node.declaration.declarations);
-                        if(routesRanges?.length){
+                        if (routesRanges?.length) {
                             ranges.push(...routesRanges);
                             return true;
                         }
@@ -48,9 +48,9 @@ export const extractRouteRanges = (routesFileContent) => {
                     ranges.push(...decoratorRouterModule.arguments[0].range);
                     return true;
                 }
-                
+
                 const decoratorProvideRouter = node.declaration.decorators[0].expression.arguments[0].properties.find(p => p?.key?.name === 'providers')?.value.elements.find(e => e.callee?.name === 'provideRouter');
-                
+
                 if (decoratorProvideRouter) {
                     ranges.push(...decoratorProvideRouter.arguments[0].range);
                     return true;
@@ -71,7 +71,7 @@ const extractVariableDeclaration = (declarations) => {
         ) {
             return declaration.init.range;
         }
-        
+
         const initTypeAnnotation = declaration.init.typeAnnotation;
         if (initTypeAnnotation?.elementType?.typeName?.name === 'Route' ||
             initTypeAnnotation?.typeName?.name === 'Routes') {
@@ -81,7 +81,36 @@ const extractVariableDeclaration = (declarations) => {
 }
 
 export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => {
-    const wrappedRoutesString = routesString
+    try {
+        // Stricter parsing mode
+        const ast = parse(routesString, {
+            range: true,
+        });
+
+        // Find the top-level array expression
+        const routesArrayNode = ast.body.find(node => node.type === 'ExpressionStatement' &&
+            node.expression.type === 'ArrayExpression');
+
+        if (!routesArrayNode) {
+            throw new Error('Could not find the routes array in the configuration.');
+        }
+
+        // Extract and transform the routes
+        return routesArrayNode.expression.elements.map(e => {
+            try {
+                return JSON.parse(cleanUpRouteDeclarations(routesString.substring(...e.range), rootName))
+            } catch (error) {
+                console.error('Error parsing route configuration:', e , error)
+            }
+        }).filter(Boolean);
+    } catch (error) {
+        console.error('Error parsing routes configuration:', error);
+        return []; // Return an empty array in case of errors
+    }
+};
+
+const cleanUpRouteDeclarations = (route, rootName) => {
+    return route
         // 1. Remove canActivate Guards:
         .replace(
             /canActivate:\s*\[[^\]]*\],?\s*/g,
@@ -154,7 +183,4 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         .replaceAll(
             /\,(?=\s*?[\}\]])/g,
             "");
-
-    const routes = JSON.parse(wrappedRoutesString);
-    return routes;
-};
+}
