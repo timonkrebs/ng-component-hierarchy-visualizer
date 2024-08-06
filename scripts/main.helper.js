@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import path from 'path';
 import { addTemplateElements } from './template.helper.js';
-import { extractRoutesFromTS } from './route.helper.js';
-import { ROUTES_REGEX_LIST, flattenRoutes, resolveComponents } from './component.helper.js';
+import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
+import { flattenRoutes, resolveComponents } from './component.helper.js';
 import { addServices } from './service.helper.js';
 
 export const main = (args) => {
     process.env.INIT_CWD = args.basePath;
     const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
-    const match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
-    const routes = extractRoutesFromTS(match[1]);
+
+    const routes = extractRoutesFromTS(extractRouteRanges(routesFileContent));
     const flattenedRoutes = flattenRoutes(routes);
     let elements = resolveComponents(flattenedRoutes, routesFileContent);
 

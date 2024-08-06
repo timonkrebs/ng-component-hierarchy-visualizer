@@ -83,6 +83,24 @@ AppComponent --o HomeComponent(HomeComponent)
 });
 
 describe('generateDeepNestedRoutes', () => {
+    it('should resolve compact components from routes', () => {
+        const components = main({
+            basePath: "./tests/route-definitions/ngx-admin",
+            routesFilePath: 'app-routing.compact.module.ts',
+            withServices: true
+        });
+        expect(components).toMatchSnapshot();
+    });
+    
+    it('should resolve provideRouter components from routes', () => {
+        const components = main({
+            basePath: "./tests/route-definitions/ngx-admin",
+            routesFilePath: 'app-routing.provideRouter.module.ts',
+            withServices: true
+        });
+        expect(components).toMatchSnapshot();
+    });
+
     it('should resolve components from routes', () => {
         const components = main({
             basePath: "./tests/route-definitions/ngx-admin",
@@ -104,6 +122,14 @@ describe('generateDeepNestedRoutes', () => {
 });
 
 describe('generateLazyComponents', () => {
+    it('should resolve satisfy components from routes', () => {
+        const components = main({
+            basePath: "./tests/route-definitions/real-world",
+            routesFilePath: 'app.routes.satisfies.ts'
+        });
+        expect(components).toMatchSnapshot();
+    });
+
     it('should resolve components from routes', () => {
         const components = main({
             basePath: "./tests/route-definitions/real-world",

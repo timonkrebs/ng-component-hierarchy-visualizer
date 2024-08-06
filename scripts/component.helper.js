@@ -1,16 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
-import { extractRoutesFromTS } from './route.helper.js';
+import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
 
-export const ROUTES_REGEX_LIST = [
-    /.*:\s*Routes\s*=\s*(\[[\s\S]*?\]);/m,
-    /.*:\s*Route\[\]\(\s*(\[[\s\S]*?\]);/m,
-    /.*:\s*provideRouter\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
-    /RouterModule\.forRoot\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
-    /.*:\s*RouterModule.forChild\s*\(\s*(\[[\s\S]*?\])\s*(?:,\s*\{[\s\S]*?\})?\s*\)/m,
-    /.*(\[[\s\S]*?\])satisfies Routes;/m,
-    /.*(\[[\s\S]*?\])satisfies Route\[\];/m
-];
 
 export const flattenRoutes = (routes) =>
     routes.flatMap(r => r.children
@@ -44,20 +35,20 @@ const handleLoadChildren = (route) => {
     let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
 
     const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
-    let match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
+    let routesString = extractRouteRanges(routesFileContent);
 
     let routes = [];
     // if routes are not configured directly in the module we have to analyze the routing.module
-    if (!match) {
+    if (!routesString) {
         const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
         const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
-        match = ROUTES_REGEX_LIST.map(regex => routesFileContent.match(regex)).find(match => match);
-        const r = extractRoutesFromTS(match[1], route.path);
+        routesString = extractRouteRanges(routesFileContent);
+        const r = extractRoutesFromTS(routesString, route.path);
         // Add connection from module to path
         routes = [{ componentName: route.path, path: thisPath, parent: route.componentName, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     } else {
-        const r = extractRoutesFromTS(match[1], route.path);
+        const r = extractRoutesFromTS(routesString, route.path);
         // Add connection from module to path
         routes = [{ componentName: route.path, path: relativePath, parent: route.componentName, lazy: false, type: 'module', subgraph: 'start', skipLoadingDependencies: true }, ...r];
     }
