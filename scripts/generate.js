@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import fs from 'node:fs';
 import path from 'path';
 import { main } from './main.helper.js'; // Adjust the path as needed
 
@@ -9,7 +10,7 @@ const parseArguments = (argv) => {
         withServices: false,
         withNestedTemplateElements: false
     };
-    
+
     for (let index = 1; index < argv.length; index++) {
         const element = argv[index];
         if ("--withservices" === element?.trim().toLowerCase()) {
@@ -21,6 +22,10 @@ const parseArguments = (argv) => {
         } else {
             args.routesFilePath = element?.trim();
         }
+    }
+
+    if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'))) {
+        args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')).compilerOptions?.paths;
     }
 
     return args;

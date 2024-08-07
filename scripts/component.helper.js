@@ -2,21 +2,49 @@ import fs from 'node:fs';
 import path from 'path';
 import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
 
+let pathAlias = new Map();
+let pathKeys = [];
 
-export const flattenRoutes = (routes) =>
-    routes.flatMap(r => r.children
+export const setPathAlias = (a) => {
+    for (let [key, value] of Object.entries(a)) {
+        const k = key.slice(0, -1);
+        pathAlias.set(k, path.join(process.env.INIT_CWD ?? process.cwd(), value[0].slice(0, -1)));
+        pathKeys.push(k);
+    }
+}
+
+export const flattenRoutes = (routes) => {
+    const r = routes.flatMap(r => r.children
         ? r.component || r.loadComponent
             ? [...flattenRoutes(r.children), { ...r, children: null }]
             : flattenRoutes(r.children)
         : [r]
-    );
+    ).filter(Boolean);
+
+    r.forEach(r => {
+        if (r.loadChildren) {
+            r.loadChildren = replacePath(r.loadChildren);
+        } else if (r.loadComponent){
+            r.loadComponent = replacePath(r.loadComponent);
+        }
+    });
+
+    return r;
+}
+
+const replacePath = (basePath) => {
+    const key = pathKeys.find(p => basePath.startsWith(p));
+    if(key) {
+        return basePath.replace(key, path.relative(process.env.INIT_CWD, pathAlias.get(key)));
+    }
+    return basePath;
+}
 
 export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
 
     return routes.flatMap(r => {
         if (r.loadComponent) {
-
             return relativePath
                 ? [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, relativePath, r.loadComponent)) }]
                 : [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
@@ -32,16 +60,25 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
 
 const handleLoadChildren = (route) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
-    let routesFileContent = fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8');
-
-    const relativePath = path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."));
+    const isLoadChildren = fs.existsSync(path.join(cwd, route.loadChildren + ".ts"));
+    let routesFileContent = isLoadChildren
+    ? fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8')
+    : fs.readFileSync(path.join(cwd, route.loadChildren + "/index.ts"), 'utf-8');
+    const relativePath = isLoadChildren 
+    ? path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."))
+    : path.relative(cwd, path.resolve(cwd, route.loadChildren));
     let routesString = extractRouteRanges(routesFileContent);
 
     let routes = [];
+    
     // if routes are not configured directly in the module we have to analyze the routing.module
     if (!routesString) {
-        const matchImport = routesFileContent.match(/import\s+\{[^}]+\}\s+from\s+'(.+\/.+routing\.module)'/);
-        const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, matchImport[1]));
+        const matchImport = routesFileContent.match(/import\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing\.module|.+routes)'/);
+        const initialPath = matchImport[1];
+        const replacedPath = replacePath(matchImport[1]);
+        const thisPath = initialPath === replacedPath 
+        ? path.relative(cwd, path.resolve(cwd, relativePath, initialPath)) 
+        : path.relative(cwd, path.resolve(cwd, replacedPath));
         routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
         routesString = extractRouteRanges(routesFileContent);
         const r = extractRoutesFromTS(routesString, route.path);
