@@ -1,6 +1,27 @@
 import fs from 'node:fs';
 import path from 'path';
 
+let pathAliases = new Map();
+let aliasKeys = [];
+
+export const setServicePathAliases = (aliases) => {
+    for (let [alias, paths] of Object.entries(aliases)) {
+        const cleanedAlias = alias.endsWith('*') ? alias.slice(0, -1) : alias;
+        const resolvedPath = path.join(process.env.INIT_CWD ?? process.cwd(), paths[0].endsWith?.('*') ? paths[0].slice(0, -1) : paths[0]);
+        pathAliases.set(cleanedAlias, resolvedPath);
+        aliasKeys.push(cleanedAlias);
+    }
+    aliasKeys = aliasKeys.sort((a, b) => b.length - a.length);
+};
+
+const replacePath = (basePath) => {
+    const matchingKey = aliasKeys.find(alias => basePath.startsWith(alias));
+    if (matchingKey) {
+        return basePath.replace(matchingKey, path.relative(process.env.INIT_CWD, pathAliases.get(matchingKey)));
+    }
+    return basePath;
+};
+
 export const addServices = (components, recursionDepth = 0) => {
     const services = components
         .filter(c => !c.skipLoadingDependencies)
@@ -51,7 +72,7 @@ const createService = (serviceName, componentCode, parent) => {
 
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
-    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, match[2]));
+    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(match[2])));
 
     return { componentName: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentName, lazy: false, type: 'service' };
 };

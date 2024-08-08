@@ -41,7 +41,7 @@ export const extractRouteRanges = (routesFileContent) => {
                     }
 
                     const initProvidersTypeAnnotation = declaration.init.properties
-                    .find(p => p.key.name === 'providers').value.elements
+                    ?.find(p => p.key.name === 'providers').value.elements
                     .find(e => e.callee.name === 'provideRouter').arguments[0];
                     if (initProvidersTypeAnnotation) {
                         ranges.push(...initProvidersTypeAnnotation.range);
@@ -67,12 +67,10 @@ export const extractRouteRanges = (routesFileContent) => {
         }
 
         if(node?.type === 'ExportDefaultDeclaration' && node.declaration?.elements?.length){
-            console.log(546, node.declaration)
             ranges.push(...node.declaration.range);
             return true;
         }
     });
-
     return ranges.length ? routesFileContent.substring(...ranges) : null;
 }
 

@@ -8,6 +8,7 @@ let aliasKeys = [];
 export const setPathAliases = (aliases) => {
     for (let [alias, paths] of Object.entries(aliases)) {
         const cleanedAlias = alias.endsWith('*') ? alias.slice(0, -1) : alias;
+        
         const resolvedPath = path.join(process.env.INIT_CWD ?? process.cwd(), paths[0].endsWith?.('*') ? paths[0].slice(0, -1) : paths[0]);
         pathAliases.set(cleanedAlias, resolvedPath);
         aliasKeys.push(cleanedAlias);
@@ -67,7 +68,7 @@ const handleLoadChildren = (route) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
     const isTsFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren + ".ts"));
-    const isFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren));
+    const isFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren)) && fs.lstatSync(path.join(projectRoot, route.loadChildren)).isFile();
 
     const childrenFilePath = isTsFileDirectlyInFolder
         ? path.join(projectRoot, route.loadChildren + ".ts")
@@ -164,7 +165,9 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
     if (match) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const modulePath = match[2];
+        
         const loadComponentPath = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+        
         return [{
             path: route.path,
             loadComponent: loadComponentPath,

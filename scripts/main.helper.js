@@ -3,11 +3,12 @@ import path from 'path';
 import { addTemplateElements } from './template.helper.js';
 import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
 import { flattenRoutes, resolveComponents, setPathAliases } from './component.helper.js';
-import { addServices } from './service.helper.js';
+import { addServices, setServicePathAliases } from './service.helper.js';
 
 export const main = (args) => {
     if (args.pathAlias) {
         setPathAliases(args.pathAlias);
+        setServicePathAliases(args.pathAlias)
     }
 
     process.env.INIT_CWD = args.basePath;
