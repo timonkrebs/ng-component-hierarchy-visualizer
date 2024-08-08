@@ -2,103 +2,157 @@ import fs from 'node:fs';
 import path from 'path';
 import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
 
-let pathAlias = new Map();
-let pathKeys = [];
+let pathAliases = new Map();
+let aliasKeys = [];
 
-export const setPathAlias = (a) => {
-    for (let [key, value] of Object.entries(a)) {
-        const k = key.slice(0, -1);
-        pathAlias.set(k, path.join(process.env.INIT_CWD ?? process.cwd(), value[0].slice(0, -1)));
-        pathKeys.push(k);
+export const setPathAliases = (aliases) => {
+    for (let [alias, paths] of Object.entries(aliases)) {
+        const cleanedAlias = alias.slice(0, -1);
+        const resolvedPath = path.join(process.env.INIT_CWD ?? process.cwd(), paths[0].slice(0, -1));
+        pathAliases.set(cleanedAlias, resolvedPath);
+        aliasKeys.push(cleanedAlias);
     }
-}
+    aliasKeys.sort((a, b) => b.length - a.length);
+};
 
 export const flattenRoutes = (routes) => {
-    const r = routes.flatMap(r => r.children
-        ? r.component || r.loadComponent
-            ? [...flattenRoutes(r.children), { ...r, children: null }]
-            : flattenRoutes(r.children)
-        : [r]
+    const flattened = routes.flatMap(route => 
+        route.children
+            ? route.component || route.loadComponent
+                ? [...flattenRoutes(route.children), { ...route, children: null }]
+                : flattenRoutes(route.children)
+            : [route]
     ).filter(Boolean);
 
-    r.forEach(r => {
-        if (r.loadChildren) {
-            r.loadChildren = replacePath(r.loadChildren);
-        } else if (r.loadComponent){
-            r.loadComponent = replacePath(r.loadComponent);
+    flattened.forEach(route => {
+        if (route.loadChildren) {
+            route.loadChildren = replacePath(route.loadChildren);
+        } else if (route.loadComponent) {
+            route.loadComponent = replacePath(route.loadComponent);
         }
     });
 
-    return r;
-}
+    return flattened;
+};
 
 const replacePath = (basePath) => {
-    const key = pathKeys.find(p => basePath.startsWith(p));
-    if(key) {
-        return basePath.replace(key, path.relative(process.env.INIT_CWD, pathAlias.get(key)));
+    const matchingKey = aliasKeys.find(alias => basePath.startsWith(alias));
+    if (matchingKey) {
+        return basePath.replace(matchingKey, path.relative(process.env.INIT_CWD, pathAliases.get(matchingKey)));
     }
     return basePath;
-}
+};
 
 export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
 
-    return routes.flatMap(r => {
-        if (r.loadComponent) {
-            return relativePath
-                ? [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, relativePath, r.loadComponent)) }]
-                : [{ ...r, lazy: true, type: 'component', loadComponent: path.relative(cwd, path.resolve(cwd, r.loadComponent)) }];
-        } else if (r.loadChildren) {
-            return handleLoadChildren(r);
-        } else if (r.skipLoadingDependencies) {
-            return [r];
+    return routes.flatMap(route => {
+        if (route.loadComponent) {
+            return [{
+                ...route,
+                lazy: true,
+                type: 'component',
+                loadComponent: path.relative(cwd, path.resolve(cwd, relativePath ?? '', route.loadComponent))
+            }];
+        } else if (route.loadChildren) {
+            return handleLoadChildren(route);
+        } else if (route.skipLoadingDependencies) {
+            return [route];
         } else {
-            return handleComponent(r, routesFileContent, relativePath);
+            return handleComponent(route, routesFileContent, relativePath);
         }
     }).filter(Boolean);
 };
 
 const handleLoadChildren = (route) => {
-    const cwd = process.env.INIT_CWD ?? process.cwd();
-    const isLoadChildren = fs.existsSync(path.join(cwd, route.loadChildren + ".ts"));
-    let routesFileContent = isLoadChildren
-    ? fs.readFileSync(path.join(cwd, route.loadChildren + ".ts"), 'utf-8')
-    : fs.readFileSync(path.join(cwd, route.loadChildren + "/index.ts"), 'utf-8');
-    const relativePath = isLoadChildren 
-    ? path.relative(cwd, path.resolve(cwd, route.loadChildren, ".."))
-    : path.relative(cwd, path.resolve(cwd, route.loadChildren));
-    let routesString = extractRouteRanges(routesFileContent);
+    const projectRoot = process.env.INIT_CWD ?? process.cwd();
+
+    const isTsFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren + ".ts"));
+    const childrenFilePath = isTsFileDirectlyInFolder
+        ? path.join(projectRoot, route.loadChildren + ".ts")
+        : path.join(projectRoot, route.loadChildren, "index.ts");
+
+    let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
+    const relativePathToParent = isTsFileDirectlyInFolder
+        ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, "..")) 
+        : path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren));
+
+    let extractedRoutesData = extractRouteRanges(routesFileContent);
 
     let routes = [];
-    
-    // if routes are not configured directly in the module we have to analyze the routing.module
-    if (!routesString) {
-        const matchImport = routesFileContent.match(/import\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing\.module|.+routes)'/);
-        const initialPath = matchImport[1];
-        const replacedPath = replacePath(matchImport[1]);
-        const thisPath = initialPath === replacedPath 
-        ? path.relative(cwd, path.resolve(cwd, relativePath, initialPath)) 
-        : path.relative(cwd, path.resolve(cwd, replacedPath));
-        routesFileContent = fs.readFileSync(path.join(cwd, thisPath + ".ts"), 'utf-8');
-        routesString = extractRouteRanges(routesFileContent);
-        const r = extractRoutesFromTS(routesString, route.path);
-        // Add connection from module to path
-        routes = [{ componentName: route.path, path: thisPath, parent: route.componentName, lazy: false, type: 'route', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+
+    // Check if routes are configured directly (convention: .+\/.+routing\.module|.+routes)
+    if (!extractedRoutesData) {
+        const moduleImportMatch = routesFileContent.match(/import\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing\.module|.+routes)'/);
+        const originalModulePath = moduleImportMatch[1];
+        const resolvedModulePath = replacePath(originalModulePath);
+
+        const moduleFilePath = originalModulePath === resolvedModulePath
+            ? path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, originalModulePath))
+            : path.relative(projectRoot, path.resolve(projectRoot, resolvedModulePath));
+        
+        const moduleFilePathWithExtension = moduleFilePath.endsWith('.ts') ? moduleFilePath : moduleFilePath + ".ts";
+        routesFileContent = fs.readFileSync(path.join(projectRoot, moduleFilePathWithExtension), 'utf-8');
+        extractedRoutesData = extractRouteRanges(routesFileContent);
+        const extractedRoutes = extractRoutesFromTS(extractedRoutesData, route.path);
+
+        // Connect module to path
+        routes = [
+            { 
+                componentName: route.path, 
+                path: moduleFilePath, 
+                parent: route.componentName, 
+                lazy: false, 
+                type: 'route', 
+                subgraph: 'start', 
+                skipLoadingDependencies: true 
+            }, 
+            ...extractedRoutes
+        ];
     } else {
-        const r = extractRoutesFromTS(routesString, route.path);
-        // Add connection from module to path
-        routes = [{ componentName: route.path, path: relativePath, parent: route.componentName, lazy: false, type: 'module', subgraph: 'start', skipLoadingDependencies: true }, ...r];
+        const extractedRoutes = extractRoutesFromTS(extractedRoutesData, route.path);
+
+        // Connect module to path
+        routes = [
+            { 
+                componentName: route.path, 
+                path: relativePathToParent, 
+                parent: route.componentName, 
+                lazy: false, 
+                type: 'module', 
+                subgraph: 'start', 
+                skipLoadingDependencies: true 
+            },
+            ...extractedRoutes
+        ];
     }
 
-    const flattenedRoutes = flattenRoutes(routes)
-        .map(r => relativePath && r.loadChildren
-            ? ({ ...r, loadChildren: path.relative(cwd, path.resolve(cwd, relativePath, r.loadChildren)) })
-            : r);
+    const flattenedRoutes = flattenRoutes(routes).map(route => {
+        if (relativePathToParent && route.loadChildren) {
+            return { 
+                ...route, 
+                loadChildren: path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, route.loadChildren)) 
+            };
+        }
+        return route;
+    });
 
-    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePath);
+    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent);
 
-    // Add connection to module
-    return [...components, { componentName: route.componentName, path: route.path, parent: route.parent, lazy: true, subgraph: 'end', type: 'route', skipLoadingDependencies: true, module: true }];
+    // Add connection back to the original module
+    return [
+        ...components,
+        { 
+            componentName: route.componentName, 
+            path: route.path, 
+            parent: route.parent, 
+            lazy: true, 
+            subgraph: 'end', 
+            type: 'route', 
+            skipLoadingDependencies: true, 
+            module: true 
+        }
+    ];
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
@@ -107,8 +161,15 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
     if (match) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const modulePath = match[2];
-        const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
-        return [{ path: route.path, loadComponent, componentName: route.component, parent: route.parent, lazy: false, type: 'component' }];
+        const loadComponentPath = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+        return [{
+            path: route.path,
+            loadComponent: loadComponentPath,
+            componentName: route.component,
+            parent: route.parent,
+            lazy: false,
+            type: 'component'
+        }];
     } else if (!route.hasOwnProperty('redirectTo')) {
         console.error(`Could not find path for component: ${route.component}`);
         return [null];

@@ -2,12 +2,12 @@ import fs from 'node:fs';
 import path from 'path';
 import { addTemplateElements } from './template.helper.js';
 import { extractRouteRanges, extractRoutesFromTS } from './route.helper.js';
-import { flattenRoutes, resolveComponents, setPathAlias } from './component.helper.js';
+import { flattenRoutes, resolveComponents, setPathAliases } from './component.helper.js';
 import { addServices } from './service.helper.js';
 
 export const main = (args) => {
     if (args.pathAlias) {
-        setPathAlias(args.pathAlias);
+        setPathAliases(args.pathAlias);
     }
 
     process.env.INIT_CWD = args.basePath;
@@ -26,35 +26,47 @@ export const main = (args) => {
 };
 
 export const generateMermaid = (routes) => {
-    const lines = routes.map(r => {
-        const l = [];
-        if (r.subgraph === 'end') {
-            l.push('end');
+    const lines = routes.map(route => {
+        const mermaidLines = [];
+        const { subgraph, componentName, lazy, type, parent } = route;
+
+        if (subgraph === 'end') {
+            mermaidLines.push('end');
         }
 
-        if(r.parent.startsWith('@')){
-            r.parent = r.parent.slice(1);
-        }
+        // Remove '@' prefix (if present) for better display
+        const formattedParent = parent?.startsWith('@') ? parent.slice(1) : parent;
+        const formattedComponentName = componentName.startsWith('@') ? componentName.slice(1) : componentName;
 
-        let componentName = r.componentName;
-        if(componentName.startsWith('@')){
-            componentName = componentName.slice(1);
-        }
-
-        if (r.subgraph === 'start') {
-            l.push(`subgraph ${r.parent ?? 'empty'}`);
-            l.push('direction LR');
-        } else if (r.lazy) {
-            l.push(`${r.parent ?? 'empty'} -.-o ${componentName}(${r.componentName})`);
+        if (subgraph === 'start') {
+            mermaidLines.push(`subgraph ${formattedParent ?? 'empty'}`);
+            mermaidLines.push('direction LR'); // Set subgraph direction to left-to-right
         } else {
-            l.push(r.type === 'service'
-                ? `${r.parent ?? 'empty'} --- ${componentName}{{${r.componentName}}}`
-                : r.type === 'import'
-                    ? `${r.parent ?? 'empty'} ---${componentName}([${r.componentName}])`
-                    : `${r.parent ?? 'empty'} --o ${componentName}(${r.componentName})`);
+            const parentNode = formattedParent ?? 'empty'; // Default to 'empty' if no parent
+
+            if (lazy) {
+                // Lazy-loaded component (dotted line with open arrowhead)
+                mermaidLines.push(`${parentNode} -.-o ${formattedComponentName}(${componentName})`); 
+            } else {
+                switch (type) {
+                    case 'service':
+                        // Service (solid line with double brackets)
+                        mermaidLines.push(`${parentNode} --- ${formattedComponentName}{{${componentName}}}`);
+                        break;
+                    case 'import':
+                        // Import (solid line with square brackets)
+                        mermaidLines.push(`${parentNode} ---${formattedComponentName}([${componentName}])`);
+                        break;
+                    default:
+                        // Standard component (solid line with open arrowhead)
+                        mermaidLines.push(`${parentNode} --o ${formattedComponentName}(${componentName})`);
+                }
+            }
         }
 
-        return l.join('\n');
+        return mermaidLines.join('\n');
     });
-    return ['flowchart LR', ...lines].join('\n');
+
+    // Assemble the complete Mermaid diagram
+    return ['flowchart LR', ...lines].join('\n'); 
 };

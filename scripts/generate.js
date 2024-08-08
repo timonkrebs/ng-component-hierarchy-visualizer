@@ -26,6 +26,8 @@ const parseArguments = (argv) => {
 
     if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'))) {
         args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')).compilerOptions?.paths;
+    } else if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'))) {
+        args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'), 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')).compilerOptions?.paths;
     }
 
     return args;
