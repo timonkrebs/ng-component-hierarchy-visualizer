@@ -7,12 +7,12 @@ let aliasKeys = [];
 
 export const setPathAliases = (aliases) => {
     for (let [alias, paths] of Object.entries(aliases)) {
-        const cleanedAlias = alias.slice(0, -1);
-        const resolvedPath = path.join(process.env.INIT_CWD ?? process.cwd(), paths[0].slice(0, -1));
+        const cleanedAlias = alias.endsWith('*') ? alias.slice(0, -1) : alias;
+        const resolvedPath = path.join(process.env.INIT_CWD ?? process.cwd(), paths[0].endsWith?.('*') ? paths[0].slice(0, -1) : paths[0]);
         pathAliases.set(cleanedAlias, resolvedPath);
         aliasKeys.push(cleanedAlias);
     }
-    aliasKeys.sort((a, b) => b.length - a.length);
+    aliasKeys = aliasKeys.sort((a, b) => b.length - a.length);
 };
 
 export const flattenRoutes = (routes) => {
@@ -45,7 +45,6 @@ const replacePath = (basePath) => {
 
 export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
-
     return routes.flatMap(route => {
         if (route.loadComponent) {
             return [{
@@ -68,12 +67,16 @@ const handleLoadChildren = (route) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
     const isTsFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren + ".ts"));
+    const isFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren));
+
     const childrenFilePath = isTsFileDirectlyInFolder
         ? path.join(projectRoot, route.loadChildren + ".ts")
+        : isFileDirectlyInFolder
+        ? path.join(projectRoot, route.loadChildren)
         : path.join(projectRoot, route.loadChildren, "index.ts");
 
     let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
-    const relativePathToParent = isTsFileDirectlyInFolder
+    const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
         ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, "..")) 
         : path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren));
 
@@ -83,8 +86,8 @@ const handleLoadChildren = (route) => {
 
     // Check if routes are configured directly (convention: .+\/.+routing\.module|.+routes)
     if (!extractedRoutesData) {
-        const moduleImportMatch = routesFileContent.match(/import\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing\.module|.+routes)'/);
-        const originalModulePath = moduleImportMatch[1];
+        const moduleImportMatch = routesFileContent.match(/(import|export)\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing\.module|.+routes)'/);
+        const originalModulePath = moduleImportMatch[2];
         const resolvedModulePath = replacePath(originalModulePath);
 
         const moduleFilePath = originalModulePath === resolvedModulePath
@@ -131,7 +134,7 @@ const handleLoadChildren = (route) => {
         if (relativePathToParent && route.loadChildren) {
             return { 
                 ...route, 
-                loadChildren: path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, route.loadChildren)) 
+                loadChildren: path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, route.loadChildren))
             };
         }
         return route;

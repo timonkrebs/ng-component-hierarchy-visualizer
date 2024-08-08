@@ -11,7 +11,7 @@ export const addServices = (components, recursionDepth = 0) => {
                 return [];
             }
         });
-    return uniqueByProperty([...components, ...services]);
+    return [...components, ...uniqueByProperty(services)];
 };
 
 const loadAllServices = (componentCode, parent, recursionDepth = 0) => {

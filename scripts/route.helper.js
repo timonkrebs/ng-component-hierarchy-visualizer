@@ -39,6 +39,14 @@ export const extractRouteRanges = (routesFileContent) => {
                         ranges.push(...declaration.init.expression.range);
                         return true;
                     }
+
+                    const initProvidersTypeAnnotation = declaration.init.properties
+                    .find(p => p.key.name === 'providers').value.elements
+                    .find(e => e.callee.name === 'provideRouter').arguments[0];
+                    if (initProvidersTypeAnnotation) {
+                        ranges.push(...initProvidersTypeAnnotation.range);
+                        return true;
+                    }
                 }
             }
 
@@ -56,6 +64,12 @@ export const extractRouteRanges = (routesFileContent) => {
                     return true;
                 }
             }
+        }
+
+        if(node?.type === 'ExportDefaultDeclaration' && node.declaration?.elements?.length){
+            console.log(546, node.declaration)
+            ranges.push(...node.declaration.range);
+            return true;
         }
     });
 
@@ -145,7 +159,7 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
-            /\(\)\s*=>\s*import\((.*?)\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
+            /\(\)\s*=>\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
             `$1, componentName: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
@@ -183,4 +197,4 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         .replaceAll(
             /\,(?=\s*?[\}\]])/g,
             "");
-}
+};

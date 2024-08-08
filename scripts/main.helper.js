@@ -66,7 +66,5 @@ export const generateMermaid = (routes) => {
 
         return mermaidLines.join('\n');
     });
-
-    // Assemble the complete Mermaid diagram
-    return ['flowchart LR', ...lines].join('\n'); 
+    return ['flowchart LR', ...lines].join('\n');
 };
