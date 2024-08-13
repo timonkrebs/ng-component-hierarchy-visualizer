@@ -40,10 +40,10 @@ export const generateMermaid = (routes) => {
         const formattedComponentName = componentName.startsWith('@') ? componentName.slice(1) : componentName;
 
         if (subgraph === 'start') {
-            mermaidLines.push(`subgraph ${formattedParent ?? 'empty'}`);
+            mermaidLines.push(`subgraph ${formattedParent || 'empty-route'}`);
             mermaidLines.push('direction LR'); // Set subgraph direction to left-to-right
         } else {
-            const parentNode = formattedParent ?? 'empty'; // Default to 'empty' if no parent
+            const parentNode = formattedParent || 'empty-route'; // Default to 'empty-route' if no parent
 
             if (lazy) {
                 // Lazy-loaded component (dotted line with open arrowhead)

@@ -153,6 +153,11 @@ const cleanUpRouteDeclarations = (route, rootName) => {
             /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
+        // 1.6 Remove providers:
+        .replace(
+            /providers:\s*\[[^\]]*\],?\s*/g,
+            ''
+        )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects

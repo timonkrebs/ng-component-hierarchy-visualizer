@@ -85,7 +85,7 @@ AppComponent --o HomeComponent(HomeComponent)
 describe('generateDeepNestedRoutes', () => {
     it('should resolve compact components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/ngx-admin",
+            basePath: "./test-data/route-definitions/ngx-admin",
             routesFilePath: 'app-routing.compact.module.ts',
             withServices: true
         });
@@ -94,7 +94,7 @@ describe('generateDeepNestedRoutes', () => {
     
     it('should resolve provideRouter components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/ngx-admin",
+            basePath: "./test-data/route-definitions/ngx-admin",
             routesFilePath: 'app-routing.provideRouter.module.ts',
             withServices: true
         });
@@ -103,7 +103,7 @@ describe('generateDeepNestedRoutes', () => {
 
     it('should resolve components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/ngx-admin",
+            basePath: "./test-data/route-definitions/ngx-admin",
             routesFilePath: 'app-routing.module.ts',
             withServices: true
         });
@@ -112,7 +112,7 @@ describe('generateDeepNestedRoutes', () => {
 
     it('should resolve template components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/ngx-admin",
+            basePath: "./test-data/route-definitions/ngx-admin",
             routesFilePath: 'app-routing.module.ts',
             withServices: true,
             withNestedTemplateElements: true
@@ -124,7 +124,7 @@ describe('generateDeepNestedRoutes', () => {
 describe('generateLazyComponents', () => {
     it('should resolve satisfy components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/real-world",
+            basePath: "./test-data/route-definitions/real-world",
             routesFilePath: 'app.routes.satisfies.ts'
         });
         expect(components).toMatchSnapshot();
@@ -132,7 +132,7 @@ describe('generateLazyComponents', () => {
 
     it('should resolve components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/real-world",
+            basePath: "./test-data/route-definitions/real-world",
             routesFilePath: 'app.routes.ts',
             withServices: true
         });
@@ -141,7 +141,7 @@ describe('generateLazyComponents', () => {
 
     it('should resolve template components from routes', () => {
         const components = main({
-            basePath: "./tests/route-definitions/real-world",
+            basePath: "./test-data/route-definitions/real-world",
             routesFilePath: 'app.routes.ts',
             withServices: true,
             withNestedTemplateElements: true

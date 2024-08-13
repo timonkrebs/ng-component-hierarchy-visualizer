@@ -43,6 +43,6 @@ testem.log
 Thumbs.db
 
 # Tests
-/tests
+/test-data
 *.test.js
 */__snapshots__
