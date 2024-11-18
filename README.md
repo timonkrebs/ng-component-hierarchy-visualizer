@@ -11,17 +11,12 @@ Generate Mermaid representations of your Angular component hierarchy representat
 - Supports eagerly and lazily loaded components.
 - Optionally include services in the visualization.
 
-## Installation
-Install the package globally using npm:
-```bash
-npm install -g @tsharp/ng-component-hierarchy-visualizer
-```
 ## Usage
 Navigate to the directory that contains the routes from which the graph should be generated.
 
 ```bash
 cd src/app
-ng-route-hierarchy [path-to-routes-file] --withServices
+npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy [path-to-routes-file] --withServices
 ```
 - Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
 - Use --withServices to include injected services in the output. (ignores Angular services for clarity)
@@ -29,11 +24,9 @@ ng-route-hierarchy [path-to-routes-file] --withServices
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
-1. go to https://stackblitz.com/edit/bqtvoz-emxakr?file=package.json
-2. wait until dependencies are installed and run following commands in the stackblitz terminal
+1. go to https://stackblitz.com/edit/dwrgd7?file=package.json
 ```
-cd src/app
-npm run ng-route-hierarchy
+npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy app-routing.module.ts --withServices --basePath=src/app
 ```
 3. copy output to https://mermaid.live/
 
@@ -42,13 +35,13 @@ Generates Mermaid Flowcharts that can be used directly in github and everywhere 
 
 ```mermaid
 flowchart LR
-AppComponent --> DashboardComponent(DashboardComponent)
-AppComponent --> HeroDetailComponent(HeroDetailComponent)
-AppComponent --> HeroesComponent(HeroesComponent)
-DashboardComponent --> HeroService{{HeroService}}
-HeroService --> MessageService{{MessageService}}
-HeroDetailComponent --> HeroService{{HeroService}}
-HeroesComponent --> HeroService{{HeroService}}
+Root --o DashboardComponent(DashboardComponent)
+Root --o HeroDetailComponent(HeroDetailComponent)
+Root --o HeroesComponent(HeroesComponent)
+DashboardComponent --- HeroService{{HeroService}}
+HeroService --- MessageService{{MessageService}}
+HeroDetailComponent --- HeroService{{HeroService}}
+HeroesComponent --- HeroService{{HeroService}}
 ```
 Or it can be pasted into the mermaid live editor:
 [Mermaid JS](https://mermaid.live/edit#pako:eNqNkU1PhDAQhv8KmRMmsNktHyU9mBg5ePC2N6mHEboLEVpSiroS_rt1dV0UkvU27zPTZybpALkqBDDY1eo1L1EbLm_a9lY1rZJCGpJN06Pj-9dOil35pFAXP9ydo6vLnjuhVSoMVvVZtMD-aRLdb8skW8P8wGyOzrKt0C9VLtxJbSULx2UL7Etzr3I0lZLuqfgWTO7K_uRL-7kEDxqhG6wK-2UDl47DwZSiERyYLQvUzxy4HO0c9kZtDzIHZnQvPNCq35en0LcFGpFWuNfYANth3VnaogQ2wBswP0nIKgxCmlAaJDENAw8OwCKyspHQMCaWbsjowbtSVmCHoyCi63gdBsS-2xxlD8fe58bxAyrP17w)
