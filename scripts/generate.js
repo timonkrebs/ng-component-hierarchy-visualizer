@@ -33,6 +33,10 @@ const parseArguments = (argv) => {
     return args;
 }
 
-
-console.log(main(parseArguments(process.argv)));
-
+fs.writeFile('Component-Diagram.mmd', main(parseArguments(process.argv)), (err) => {
+    if (err) {
+      console.error('Error writing file:', err);
+    } else {
+      console.log('File written successfully!');
+    }
+  });

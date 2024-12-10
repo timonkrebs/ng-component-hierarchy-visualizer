@@ -28,6 +28,7 @@ npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy [path-to-routes
 ```
 npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy app-routing.module.ts --withServices --basePath=src/app
 ```
+2. Find file Component-Diagram.mmd
 3. copy output to https://mermaid.live/
 
 # Output
