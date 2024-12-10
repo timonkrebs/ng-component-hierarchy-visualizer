@@ -123,40 +123,30 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
 
 const cleanUpRouteDeclarations = (route, rootName) => {
     return route
-        // 1. Remove canActivate Guards:
+        // 1.1 Remove Guards:
         .replace(
-            /canActivate:\s*\[[^\]]*\],?\s*/g,
+            /can.*:\s*\[[^\]]*\],?\s*/g,
             ''
         )
-        // 1.2 Remove canMatch Guards:
-        .replace(
-            /canActivateChild:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.3 Remove canDeactivate Guards:
-        .replace(
-            /canDeactivate:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.4 Remove canMatch Guards:
-        .replace(
-            /canMatch:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.5 Remove data:
+        // 1.2 Remove data:
         .replace(
             /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
-        // 1.6 Remove resolve:
+        // 1.3 Remove resolve:
         .replace(
             /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
             ''
         )
-        // 1.6 Remove providers:
+        // 1.4 Remove providers:
         .replace(
             /providers:\s*\[[^\]]*\],?\s*/g,
             ''
+        )
+        // 1.5 Remove
+        .replace(
+            /as\s*('full'|\w+)\s*\|\s*('full'|\w+)/g,
+            `$1`
         )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
