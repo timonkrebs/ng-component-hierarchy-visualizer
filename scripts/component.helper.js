@@ -87,7 +87,7 @@ const handleLoadChildren = (route) => {
 
     // Check if routes are configured directly (convention: .+\/.+routing\.module|.+routes)
     if (!extractedRoutesData) {
-        const moduleImportMatch = routesFileContent.match(/(import|export)\s+\{?[^}]+\}?\s+from\s+'(.+\/.+routing|.+routes)'/);
+        const moduleImportMatch = routesFileContent.match(/(import|export)\s+\{?[^}]+\}?\s+from\s+'(.+\/.*routing.*|.+routes)'/);
         const originalModulePath = moduleImportMatch[2];
         const resolvedModulePath = replacePath(originalModulePath);
 
