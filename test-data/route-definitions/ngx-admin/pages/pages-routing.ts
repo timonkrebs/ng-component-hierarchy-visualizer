@@ -20,23 +20,30 @@ const routes: Routes = [{
     },
     {
       path: 'layout',
-      loadChildren: () => import('./layout/layout.module')
-        .then(m => m.LayoutModule),
+      loadChildren: () => {
+
+          import('./layout/layout.module')
+          .then(m => m.LayoutModule)
+
+      },
     },
     {
       path: 'forms',
       loadChildren: () => import('./forms/forms.module')
-        .then(m => m.FormsModule),
+        
+      .then(m => m.FormsModule),
     },
     {
       path: 'ui-features',
-      loadChildren: () => import('./ui-features/ui-features.module')
-        .then(m => m.UiFeaturesModule),
+      loadChildren: () => import('./ui-features/ui-features.module').then(m => m.UiFeaturesModule),
     },
     {
       path: 'modal-overlays',
-      loadChildren: () => import('./modal-overlays/modal-overlays.module')
-        .then(m => m.ModalOverlaysModule),
+      loadChildren: 
+      
+      () => import('./modal-overlays/modal-overlays.module')
+        
+      .then(m => m.ModalOverlaysModule),
     },
     {
       path: 'extra-components',
@@ -71,7 +78,7 @@ const routes: Routes = [{
     {
       path: '',
       redirectTo: 'dashboard',
-      pathMatch: 'full',
+      pathMatch: 'full' as 'full' | 'prefix',
     },
     {
       path: '**',

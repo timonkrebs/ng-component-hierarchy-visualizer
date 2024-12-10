@@ -41,8 +41,8 @@ export const extractRouteRanges = (routesFileContent) => {
                     }
 
                     const initProvidersTypeAnnotation = declaration.init.properties
-                    ?.find(p => p.key.name === 'providers').value.elements
-                    .find(e => e.callee.name === 'provideRouter').arguments[0];
+                        ?.find(p => p.key.name === 'providers').value.elements
+                        .find(e => e.callee.name === 'provideRouter').arguments[0];
                     if (initProvidersTypeAnnotation) {
                         ranges.push(...initProvidersTypeAnnotation.range);
                         return true;
@@ -66,7 +66,7 @@ export const extractRouteRanges = (routesFileContent) => {
             }
         }
 
-        if(node?.type === 'ExportDefaultDeclaration' && node.declaration?.elements?.length){
+        if (node?.type === 'ExportDefaultDeclaration' && node.declaration?.elements?.length) {
             ranges.push(...node.declaration.range);
             return true;
         }
@@ -108,13 +108,15 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         }
 
         // Extract and transform the routes
-        return routesArrayNode.expression.elements.map(e => {
+        const routes = routesArrayNode.expression.elements.map(e => {
             try {
-                return JSON.parse(cleanUpRouteDeclarations(routesString.substring(...e.range), rootName))
+                return JSON.parse(cleanUpRouteDeclarations(routesString.substring(...e.range), rootName));
             } catch (error) {
-                console.error('Error parsing route configuration:', e , error)
+                console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesString.substring(...e.range)), e, error);
             }
         }).filter(Boolean);
+
+        return routes;
     } catch (error) {
         console.error('Error parsing routes configuration:', error);
         return []; // Return an empty array in case of errors
@@ -143,16 +145,16 @@ const cleanUpRouteDeclarations = (route, rootName) => {
             /providers:\s*\[[^\]]*\],?\s*/g,
             ''
         )
-        // 1.5 Remove
+        // 1.5 Remove pathMatch
         .replace(
-            /as\s*('full'|\w+)\s*\|\s*('full'|\w+)/g,
-            `$1`
+            /pathMatch:\s*.*,\s*/,
+            ''
         )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
-            /\(\)\s*=>\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
+            /\(\)\s*=>\s*{?\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+)\s*\)?\s*}?\s*,?\s*/g,
             `$1, componentName: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
@@ -160,7 +162,7 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         //    transforms them into `{ path, componentName, parent }` objects
         //    It uses the path also as the componentName
         .replace(
-            /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
+            /\(\)\s*=>\s*{?\s*import\(([\s\S]*?)\)\s*}?\s*,?\s*/g,
             `$1, componentName: $1, parent: "${rootName}"`
         )
         // 4. Handle Routes with the 'component' Property:
