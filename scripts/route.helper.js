@@ -110,7 +110,12 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         // Extract and transform the routes
         const routes = routesArrayNode.expression.elements.map(e => {
             try {
-                return JSON.parse(cleanUpRouteDeclarations(routesString.substring(...e.range), rootName));
+                const x = routesString.substring(...e.range);
+                /* ToDo: build the expressions from ast
+                if (x.includes('layout/layout.module')) {
+                    console.log(x, e.properties.find(n => n.key?.name === 'children').value.elements[0].properties)
+                }*/
+                return JSON.parse(cleanUpRouteDeclarations(x, rootName));
             } catch (error) {
                 console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesString.substring(...e.range)), e, error);
             }
@@ -147,14 +152,14 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         )
         // 1.5 Remove pathMatch
         .replace(
-            /pathMatch:\s*[\w\s]*,?/,
+            /pathMatch:\s*[\w\s'"`\[\]\(\)\|]*,?/,
             ''
         )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
-            /\(\)\s*=>[\s\S]*?import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+)\s*\)?[\s\S]*?,?\s*/g,
+            /\(\)\s*=>\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
             `$1, componentName: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
@@ -162,7 +167,7 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         //    transforms them into `{ path, componentName, parent }` objects
         //    It uses the path also as the componentName
         .replace(
-            /\(\)\s*=>[\s\S]*?import\(([\s\S]*?)\)[\s\S]*?,?\s*/g,
+            /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
             `$1, componentName: $1, parent: "${rootName}"`
         )
         // 4. Handle Routes with the 'component' Property:

@@ -20,18 +20,19 @@ const routes: Routes = [{
     },
     {
       path: 'layout',
-      loadChildren: () => {
+      loadChildren: () =>
 
-          import('./layout/layout.module')
+           import('./layout/layout.module')
           .then(m => m.LayoutModule)
+ 
 
-      },
+
     },
     {
       path: 'forms',
       loadChildren: () => import('./forms/forms.module')
         
-      .then(m => m.FormsModule),
+      .then(m => m.FormsModule)
     },
     {
       path: 'ui-features',
