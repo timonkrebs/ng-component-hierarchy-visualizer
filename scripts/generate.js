@@ -24,19 +24,27 @@ const parseArguments = (argv) => {
         }
     }
 
-    if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'))) {
-        args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')).compilerOptions?.paths;
-    } else if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'))) {
-        args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'), 'utf-8').replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')).compilerOptions?.paths;
-    }
+    try {
+        if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'))) {
+            args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8')
+            .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')) // remove multiline comments
+            .replace(/\/\/.*/g, '') // remove singleline comments
+            .compilerOptions?.paths;
+        } else if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'))) {
+            args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'), 'utf-8')
+            .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')) // remove multiline comments
+            .replace(/\/\/.*/g, '') // remove singleline comments
+            .compilerOptions?.paths;
+        }
+    } catch { }
 
     return args;
 }
 
 fs.writeFile('Component-Diagram.mmd', main(parseArguments(process.argv)), (err) => {
     if (err) {
-      console.error('Error writing file:', err);
+        console.error('Error writing file:', err);
     } else {
-      console.log('File written successfully!');
+        console.log('File written successfully!');
     }
-  });
+});

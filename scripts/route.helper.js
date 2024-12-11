@@ -147,14 +147,14 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         )
         // 1.5 Remove pathMatch
         .replace(
-            /pathMatch:\s*.*,\s*/,
+            /pathMatch:\s*[\w\s]*,?/,
             ''
         )
         // 2. Replace Lazy Loaded Routes with Simplified Syntax:
         //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
         //    and transforms them into `{ path, componentName, parent }` objects
         .replace(
-            /\(\)\s*=>\s*{?\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+)\s*\)?\s*}?\s*,?\s*/g,
+            /\(\)\s*=>[\s\S]*?import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+)\s*\)?[\s\S]*?,?\s*/g,
             `$1, componentName: "$3", parent: "${rootName}"`
         )
         // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
@@ -162,7 +162,7 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         //    transforms them into `{ path, componentName, parent }` objects
         //    It uses the path also as the componentName
         .replace(
-            /\(\)\s*=>\s*{?\s*import\(([\s\S]*?)\)\s*}?\s*,?\s*/g,
+            /\(\)\s*=>[\s\S]*?import\(([\s\S]*?)\)[\s\S]*?,?\s*/g,
             `$1, componentName: $1, parent: "${rootName}"`
         )
         // 4. Handle Routes with the 'component' Property:
@@ -191,5 +191,8 @@ const cleanUpRouteDeclarations = (route, rootName) => {
         // 8.remove all trailing commas
         .replaceAll(
             /\,(?=\s*?[\}\]])/g,
-            "");
+            "")
+        // 9. remove all comments
+        .replace(/\/\/.*/g, '') // Single Line
+        .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''); // Multi Line
 };
