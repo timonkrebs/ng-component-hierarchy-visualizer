@@ -25,7 +25,7 @@ export const routes = [
   },
   {
     path: "settings",
-    loadComponent: () => import("./features/settings/settings.component"),
+    loadComponent: () => import("./features/settings/settings.component").then(c => c.SettingsComponent),
     canActivate: [() => inject(UserService).isAuthenticated],
   },
   {

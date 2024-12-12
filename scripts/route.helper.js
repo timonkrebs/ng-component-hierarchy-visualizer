@@ -109,15 +109,16 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
 
         // Extract and transform the routes
         const routes = routesArrayNode.expression.elements.map(e => {
+            let routesStringRange;
             try {
-                const x = routesString.substring(...e.range);
-                /* ToDo: build the expressions from ast
-                if (x.includes('layout/layout.module')) {
-                    console.log(x, e.properties.find(n => n.key?.name === 'children').value.elements[0].properties)
-                }*/
-                return JSON.parse(cleanUpRouteDeclarations(x, rootName));
+                // ToDo: build the expressions from ast 
+                // console.log(handleChildren([e]))
+
+                routesStringRange = routesString.substring(...e.range);
+                routesStringRange = cleanUpRouteDeclarations(routesStringRange, rootName);
+                return JSON.parse(routesStringRange);
             } catch (error) {
-                console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesString.substring(...e.range)), e, error);
+                console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesStringRange), e, error);
             }
         }).filter(Boolean);
 
@@ -127,6 +128,59 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         return []; // Return an empty array in case of errors
     }
 };
+
+const handleChildren = (elements, rootName) => {
+    const tempRoutes = [];
+    elements.forEach(e => {
+        // e.type should always be 'ObjectExpression'
+        if (e.properties.some(n => n.key?.name === 'component')) {
+            tempRoutes.push(extractComponents(e.properties, rootName));
+        }
+
+        if (e.properties.some(n => n.key?.name === 'loadComponent')) {
+            tempRoutes.push(extractLoadComponents(e.properties, rootName));
+        }
+
+        if (e.properties.some(n => n.key?.name === 'loadChildren')) {
+            tempRoutes.push(extractLoadChildren(e.properties, rootName));
+        }
+
+        const children = e.properties.find(n => n.key?.name === 'children')?.value?.elements;
+        if (children?.length > 0) {
+            handleChildren(children, rootName).forEach(element => {
+                tempRoutes.push(element)
+            });
+        }
+    })
+
+    return tempRoutes;
+};
+
+const extractComponents = (properties, parent) => {
+    return {
+        path: properties.find(n => n.key?.name === 'path')?.value?.value,
+        component: properties.find(n => n.key?.name === 'component')?.value?.name,
+        parent
+    }
+};
+
+const extractLoadComponents = (properties, parent) => {
+    return {
+        path: properties.find(n => n.key?.name === 'path')?.value?.value,
+        loadComponent: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.source?.value,
+        parent
+    }
+};
+
+const extractLoadChildren = (properties, parent) => {
+    const loadComponent = properties.find(n => n.key?.name === 'loadChildren')?.value?.body?.source?.value
+    return {
+        path: properties.find(n => n.key?.name === 'path')?.value?.value,
+        loadComponent,
+        componentName: loadComponent,
+        parent
+    }
+}
 
 const cleanUpRouteDeclarations = (route, rootName) => {
     return route
