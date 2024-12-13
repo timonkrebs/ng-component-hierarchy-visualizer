@@ -176,8 +176,8 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
             lazy: false,
             type: 'component'
         }];
-    } else if (!route.hasOwnProperty('redirectTo')) {
-        console.error(`Could not find path for component: ${route.component}`);
+    } else {
+        console.error(`Could not find path for component: ${route.component}`, route);
         return [null];
     }
 };

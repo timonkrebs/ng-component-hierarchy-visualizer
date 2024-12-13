@@ -109,16 +109,17 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
 
         // Extract and transform the routes
         const routes = routesArrayNode.expression.elements.map(e => {
-            let routesStringRange;
             try {
-                routesStringRange = routesString.substring(...e.range);
-                routesStringRange = cleanUpRouteDeclarations(routesStringRange, rootName);
-                // ToDo: build the expressions from ast  
-                console.log(handleChildren([e], rootName));
-                // console.log(routesStringRange);
-                return JSON.parse(routesStringRange);
+                const resolvedRoutes = extractRoutes([e], rootName)
+                if(resolvedRoutes.length === 1) {
+                    return resolvedRoutes[0];
+                }
+
+                return {
+                    children: resolvedRoutes
+                };
             } catch (error) {
-                console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesStringRange), e, error);
+                console.error('Error extracting route configuration:', error);
             }
         }).filter(Boolean);
 
@@ -129,7 +130,7 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
     }
 };
 
-const handleChildren = (elements, rootName) => {
+const extractRoutes = (elements, rootName) => {
     const tempRoutes = [];
     elements.forEach(e => {
         // e.type should always be 'ObjectExpression'
@@ -147,7 +148,7 @@ const handleChildren = (elements, rootName) => {
 
         const children = e.properties.find(n => n.key?.name === 'children')?.value?.elements;
         if (children?.length > 0) {
-            handleChildren(children, rootName).forEach(element => {
+            extractRoutes(children, rootName).forEach(element => {
                 tempRoutes.push(element)
             });
         }
@@ -165,95 +166,23 @@ const extractComponents = (properties, parent) => {
 };
 
 const extractLoadComponents = (properties, parent) => {
-    const loadComponent = properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.source?.value;
+    const loadComponent = properties.find(n => n.key?.name === 'loadComponent')
+    const loadComponentValue = loadComponent?.value?.body?.callee?.object?.source?.value ?? loadComponent?.value?.body?.source?.value;
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
-        loadComponent: loadComponent,
-        componentName: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.arguments?.[0]?.body?.property?.name ?? loadComponent,
+        loadComponent: loadComponentValue,
+        componentName: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.arguments?.[0]?.body?.property?.name ?? loadComponentValue,
         parent
     }
 };
 
 const extractLoadChildren = (properties, parent) => {
-    const loadChildren = properties.find(n => n.key?.name === 'loadChildren')?.value?.body?.source?.value
+    const loadChildren = properties.find(n => n.key?.name === 'loadChildren')
+    const loadChildrenValue = loadChildren?.value?.body?.callee?.object?.source?.value ?? loadChildren?.value?.body?.source?.value;
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
-        loadChildren,
-        componentName: properties.find(n => n.key?.name === 'loadChildren')?.value.body.arguments?.[0]?.body?.property?.name ?? loadChildren,
+        loadChildren: loadChildrenValue,
+        componentName: properties.find(n => n.key?.name === 'loadChildren')?.value.body.arguments?.[0]?.body?.property?.name ?? loadChildrenValue,
         parent
     }
 }
-
-const cleanUpRouteDeclarations = (route, rootName) => {
-    return route
-        // 1.1 Remove Guards:
-        .replace(
-            /can.*:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.2 Remove data:
-        .replace(
-            /data:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
-            ''
-        )
-        // 1.3 Remove resolve:
-        .replace(
-            /resolve:\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\},?\s*/g,
-            ''
-        )
-        // 1.4 Remove providers:
-        .replace(
-            /providers:\s*\[[^\]]*\],?\s*/g,
-            ''
-        )
-        // 1.5 Remove pathMatch
-        .replace(
-            /pathMatch:\s*[\w\s'"`\[\]\(\)\|]*,?/,
-            ''
-        )
-        // 2. Replace Lazy Loaded Routes with Simplified Syntax:
-        //    This matches routes with the pattern `() => import(path).then(m => m.componentName)`
-        //    and transforms them into `{ path, componentName, parent }` objects
-        .replace(
-            /\(\)\s*=>\s*import\(\s*(.*?)\s*\)\s*\.then\(\s*\(?(\w+)\)?\s*=>\s*\2\.(\w+),?\s*\)/g,
-            `$1, componentName: "$3", parent: "${rootName}"`
-        )
-        // 3. Replace Lazy Loaded Routes wothout explicit Type .then(m => m.componentName) with Simplified Syntax:
-        //    This matches routes with the pattern `() => import(path)` and 
-        //    transforms them into `{ path, componentName, parent }` objects
-        //    It uses the path also as the componentName
-        .replace(
-            /\(\)\s*=>\s*import\(([\s\S]*?)\)/g,
-            `$1, componentName: $1, parent: "${rootName}"`
-        )
-        // 4. Handle Routes with the 'component' Property:
-        //    This matches routes with the pattern `component: SomeComponent`
-        //    and adds the 'parent' property to them
-        .replace(
-            /(component:\s*)(\w+)/g,
-            `$1"$2", parent: "${rootName}"`
-        )
-        // 5. Remove Newlines and Carriage Returns:
-        //    This simplifies the string for further processing
-        .replace(
-            /(\r\n|\n|\r)/gm,
-            ""
-        )
-        // 6. Convert Keys to strings
-        .replace(
-            /(?<=\{|\s)(\w+)(?=\s*:|\s*:)/g,
-            '"$1"'
-        )
-        // 7. Convert Values wrapped in single quotes to strings
-        .replaceAll(
-            "'",
-            '"'
-        )
-        // 8.remove all trailing commas
-        .replaceAll(
-            /\,(?=\s*?[\}\]])/g,
-            "")
-        // 9. remove all comments
-        .replace(/\/\/.*/g, '') // Single Line
-        .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''); // Multi Line
-};
