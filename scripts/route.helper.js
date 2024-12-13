@@ -111,11 +111,11 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         const routes = routesArrayNode.expression.elements.map(e => {
             let routesStringRange;
             try {
-                // ToDo: build the expressions from ast 
-                // console.log(handleChildren([e]))
-
                 routesStringRange = routesString.substring(...e.range);
                 routesStringRange = cleanUpRouteDeclarations(routesStringRange, rootName);
+                // ToDo: build the expressions from ast  
+                console.log(handleChildren([e], rootName));
+                // console.log(routesStringRange);
                 return JSON.parse(routesStringRange);
             } catch (error) {
                 console.error('Error parsing route configuration:', cleanUpRouteDeclarations(routesStringRange), e, error);
@@ -165,19 +165,21 @@ const extractComponents = (properties, parent) => {
 };
 
 const extractLoadComponents = (properties, parent) => {
+    const loadComponent = properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.source?.value;
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
-        loadComponent: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.source?.value,
+        loadComponent: loadComponent,
+        componentName: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.arguments?.[0]?.body?.property?.name ?? loadComponent,
         parent
     }
 };
 
 const extractLoadChildren = (properties, parent) => {
-    const loadComponent = properties.find(n => n.key?.name === 'loadChildren')?.value?.body?.source?.value
+    const loadChildren = properties.find(n => n.key?.name === 'loadChildren')?.value?.body?.source?.value
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
-        loadComponent,
-        componentName: loadComponent,
+        loadChildren,
+        componentName: properties.find(n => n.key?.name === 'loadChildren')?.value.body.arguments?.[0]?.body?.property?.name ?? loadChildren,
         parent
     }
 }
