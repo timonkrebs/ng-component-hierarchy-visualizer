@@ -94,14 +94,13 @@ const extractVariableDeclaration = (declarations) => {
 
 export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => {
     try {
-        // Stricter parsing mode
         const ast = parse(routesString, {
             range: true,
         });
 
         // Find the top-level array expression
-        const routesArrayNode = ast.body.find(node => node.type === 'ExpressionStatement' &&
-            node.expression.type === 'ArrayExpression');
+        const routesArrayNode = ast.body
+            .find(node => node.type === 'ExpressionStatement' && node.expression.type === 'ArrayExpression');
 
         if (!routesArrayNode) {
             throw new Error('Could not find the routes array in the configuration.');
@@ -111,7 +110,7 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         const routes = routesArrayNode.expression.elements.map(e => {
             try {
                 const resolvedRoutes = extractRoutes([e], rootName)
-                if(resolvedRoutes.length === 1) {
+                if (resolvedRoutes.length === 1) {
                     return resolvedRoutes[0];
                 }
 
@@ -121,7 +120,7 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
             } catch (error) {
                 console.error('Error extracting route configuration:', error);
             }
-        }).filter(Boolean);
+        });
 
         return routes;
     } catch (error) {
@@ -149,10 +148,10 @@ const extractRoutes = (elements, rootName) => {
         const children = e.properties.find(n => n.key?.name === 'children')?.value?.elements;
         if (children?.length > 0) {
             extractRoutes(children, rootName).forEach(element => {
-                tempRoutes.push(element)
+                tempRoutes.push(element);
             });
         }
-    })
+    });
 
     return tempRoutes;
 };
@@ -160,29 +159,45 @@ const extractRoutes = (elements, rootName) => {
 const extractComponents = (properties, parent) => {
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
-        component: properties.find(n => n.key?.name === 'component')?.value?.name,
+        component: properties.find(n => n.key?.name === 'component').value.name,
         parent
     }
 };
 
 const extractLoadComponents = (properties, parent) => {
-    const loadComponent = properties.find(n => n.key?.name === 'loadComponent')
-    const loadComponentValue = loadComponent?.value?.body?.callee?.object?.source?.value ?? loadComponent?.value?.body?.source?.value;
+    const loadComponent = extractBaseProperty(properties.find(n => n.key?.name === 'loadComponent'));
+
+    const loadComponentValue = loadComponent.callee?.object?.source?.value // if it has .then
+        ?? loadComponent.source.value; // if it has no .then
+
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
         loadComponent: loadComponentValue,
-        componentName: properties.find(n => n.key?.name === 'loadComponent')?.value?.body?.arguments?.[0]?.body?.property?.name ?? loadComponentValue,
+        componentName: loadComponent.arguments?.[0]?.body?.property?.name ?? loadComponentValue,
         parent
     }
 };
 
 const extractLoadChildren = (properties, parent) => {
-    const loadChildren = properties.find(n => n.key?.name === 'loadChildren')
-    const loadChildrenValue = loadChildren?.value?.body?.callee?.object?.source?.value ?? loadChildren?.value?.body?.source?.value;
+    const loadChildren = extractBaseProperty(properties.find(n => n.key?.name === 'loadChildren'));
+
+    const loadChildrenValue = loadChildren.callee?.object?.source?.value  // if it has .then
+        ?? loadChildren.source.value; // if it has no .then
+
     return {
         path: properties.find(n => n.key?.name === 'path')?.value?.value,
         loadChildren: loadChildrenValue,
-        componentName: properties.find(n => n.key?.name === 'loadChildren')?.value.body.arguments?.[0]?.body?.property?.name ?? loadChildrenValue,
+        componentName: loadChildren.arguments?.[0]?.body?.property?.name ?? loadChildrenValue,
         parent
     }
+};
+
+const extractBaseProperty = (node) => {
+    const body = node.value?.body?.body?.[0]?.argument // if it has a body
+        ?? node.value?.consequent?.body // if it has a ternary
+        ?? node.value?.body; // if it has no body
+
+    return body.body?.[0]?.consequent?.body?.[0]?.argument // if it has an if statement inside the body of the callback
+        ?? body.consequent // if it has a ternary inside the body of the callback
+        ?? body;
 }

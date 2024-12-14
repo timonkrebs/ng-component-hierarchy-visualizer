@@ -21,18 +21,28 @@ const routes: Routes = [{
     {
       path: 'layout',
       loadChildren: () =>
-
-           import('./layout/layout.module')
+      {
+        if  (true)  {
+          return import('./layout/layout.module')
           .then(m => m.LayoutModule)
+        }   else{
+          return import('./bla')
+          .then(m => m.b)
+        }
+
+      }
+
  
 
 
     },
     {
       path: 'forms',
-      loadChildren: () => import('./forms/forms.module')
+      loadChildren: () => false ? import('./forms/forms.module').then(m => m.FormsModule) 
+      : import('./bla')
+      .then(m => m.b)
         
-      .then(m => m.FormsModule)
+      
     },
     {
       path: 'ui-features',

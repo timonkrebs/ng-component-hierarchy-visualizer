@@ -11,14 +11,16 @@ export const routes = [
   },
   {
     path: "login",
-    loadComponent: () => import("./core/auth/auth.component"),
+    loadComponent: () => false 
+    ? import("./core/auth/auth.component")
+    : import("./uups"),
     canActivate: [
       () => inject(UserService).isAuthenticated.pipe(map((isAuth) => !isAuth)),
     ],
   },
   {
     path: "register",
-    loadComponent: () => import("./core/auth/auth.component"),
+    loadComponent: true? () => import("./core/auth/auth.component") : import("./noooo"),
     canActivate: [
       () => inject(UserService).isAuthenticated.pipe(map((isAuth) => !isAuth)),
     ],
@@ -30,7 +32,7 @@ export const routes = [
   },
   {
     path: "profile",
-    loadChildren: () => import("./features/profile/profile.routes"),
+    loadChildren: () => import("./features/profile/profile.routes")
   },
   {
     path: "editor",
