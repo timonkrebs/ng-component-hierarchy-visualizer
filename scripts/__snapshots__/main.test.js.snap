@@ -544,3 +544,16 @@ ArticleComponent --- ArticlesService{{ArticlesService}}
 ArticleComponent --- CommentsService{{CommentsService}}
 ArticleComponent --- UserService{{UserService}}"
 `;
+
+exports[`generateLazyComponents should resolve template components inspired from real routes 1`] = `
+"flowchart LR
+Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
+Root -.-o ./features/references/api-reference-list/api-reference-list.component(./features/references/api-reference-list/api-reference-list.component)
+Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
+Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
+Root -.-o ./features/tutorial/tutorial.component(./features/tutorial/tutorial.component)
+Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
+Root -.-o ./features/home/home.component(./features/home/home.component)
+Root -.-o ./features/playground/playground.component(./features/playground/playground.component)
+Root -.-o ./features/docs/docs.component(./features/docs/docs.component)"
+`;

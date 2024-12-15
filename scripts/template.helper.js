@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
 import { extractRoutesFromTS } from './route.helper.js';
-import { flattenRoutes, resolveComponents } from './component.helper.js';
+import { handleRoutePaths, resolveComponents } from './component.helper.js';
 
 export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
     if (recursionDepth > 10) {
@@ -72,7 +72,7 @@ const handleRoutes = (importNodes, fileContent, withNestedTemplateElements, p, c
 
     if (provideRouter?.type === 'ArrayExpression') {
         const routes = extractRoutesFromTS(fileContent.substring(...provideRouter.range), componentName);
-        const flattenedRoutes = flattenRoutes(routes);
+        const flattenedRoutes = handleRoutePaths(routes);
 
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const resolvedComponents = resolveComponents(flattenedRoutes, fileContent, p);

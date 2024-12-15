@@ -2,7 +2,7 @@ import { parse } from '@typescript-eslint/typescript-estree';
 
 const ROOT_COMPONENT = 'Root';
 
-export const extractRouteRanges = (routesFileContent) => {
+const extractRouteRanges = (routesFileContent) => {
     const ast = parse(routesFileContent, { range: true });
     const ranges = [];
     ast.body.some((node) => {
@@ -98,31 +98,34 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
             range: true,
         });
 
-        // Find the top-level array expression
-        const routesArrayNode = ast.body
-            .find(node => node.type === 'ExpressionStatement' && node.expression.type === 'ArrayExpression');
+        let routesArrayNodes = ast.body
+                .map(node => node.type === 'ExportNamedDeclaration' ? node.declaration.declarations : node.declarations)
+                .flatMap(node => node)
+                .filter(node => node?.init && (node.init.arguments?.length ?? node.init.elements?.length ?? node.init.expression))
+                .flatMap(node => node.init.arguments ?? node.init.elements ?? node.init.expression)
+                .flatMap(node => node.elements ?? node)
+                .filter(node => node.properties);
 
-        if (!routesArrayNode) {
-            throw new Error('Could not find the routes array in the configuration.');
+        if (!routesArrayNodes.length) {
+            const extractedRoutsString = extractRouteRanges(routesString);
+            const extractedAst = parse(extractedRoutsString, {
+                range: true,
+            });
+            routesArrayNodes = extractedAst.body[0].expression?.elements ?? [];
         }
 
-        // Extract and transform the routes
-        const routes = routesArrayNode.expression.elements.map(e => {
-            try {
-                const resolvedRoutes = extractRoutes([e], rootName)
-                if (resolvedRoutes.length === 1) {
-                    return resolvedRoutes[0];
-                }
-
-                return {
-                    children: resolvedRoutes
-                };
-            } catch (error) {
-                console.error('Error extracting route configuration:', error);
+        try {
+            const resolvedRoutes = extractRoutes(routesArrayNodes, rootName)
+            if (resolvedRoutes.length === 1) {
+                return resolvedRoutes[0];
             }
-        });
 
-        return routes;
+            return resolvedRoutes;
+        } catch (error) {
+            console.error('Error extracting route configuration:', error);
+        }
+
+        return [];
     } catch (error) {
         console.error('Error parsing routes configuration:', error);
         return []; // Return an empty array in case of errors
@@ -131,8 +134,7 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
 
 const extractRoutes = (elements, rootName) => {
     const tempRoutes = [];
-    elements.forEach(e => {
-        // e.type should always be 'ObjectExpression'
+    elements.filter(e => e.type === 'ObjectExpression').forEach(e => {
         if (e.properties.some(n => n.key?.name === 'component')) {
             tempRoutes.push(extractComponents(e.properties, rootName));
         }
