@@ -56,5 +56,12 @@ At this stage the library does have several limitations:
 - **Path Resolution**: Unusual project structures or symbolic links may cause resolution issues.
 - **Mermaid Diagram Complexity**: Large applications may produce complex diagrams that are difficult to read.
 
+## Detective
+Check out [Detective](https://github.com/angular-architects/detective) for even more insights into your Angular/TS Apps.
+
+```shell
+npx @softarc/detective detective
+```
+
 ## Contributing
 Contributions are welcome! Please open an issue or submit a pull request for any changes.
