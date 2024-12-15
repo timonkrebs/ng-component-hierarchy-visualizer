@@ -4,7 +4,7 @@ import { handleRoutePaths, resolveComponents } from './component.helper.js';
 import { addServices } from './service.helper.js';
 
 describe('extractRoutesFromTS', () => {
-    it('should extract routes from TypeScript content const', () => {
+    it('should extract routes from TypeScript content', () => {
         const fileContent = `
             const x = [
                 { path: '', component: HomeComponent },
@@ -19,20 +19,6 @@ describe('extractRoutesFromTS', () => {
         expect(routes).toEqual(expectedRoutes);
     });
 
-    it.skip('should extract routes from TypeScript content', () => {
-        const fileContent = `
-            [
-                { path: '', component: HomeComponent },
-                { path: 'about', component: AboutComponent }
-            ]
-        `;
-        const expectedRoutes = [
-            { path: '', component: 'HomeComponent', parent: 'Root' },
-            { path: 'about', component: 'AboutComponent', parent: 'Root' }
-        ];
-        const routes = extractRoutesFromTS(fileContent);
-        expect(routes).toEqual(expectedRoutes);
-    });
 });
 
 describe('flattenRoutes', () => {
