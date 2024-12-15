@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component, DestroyRef, inject, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { ArticleListComponent } from "../../article/components/article-list.component";

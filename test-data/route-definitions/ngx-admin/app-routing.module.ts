@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 import {

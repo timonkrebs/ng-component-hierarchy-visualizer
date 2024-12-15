@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component, DestroyRef, inject, OnInit } from "@angular/core";
 import {
   Validators,

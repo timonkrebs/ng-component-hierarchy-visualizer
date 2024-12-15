@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component, DestroyRef, inject, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { TagsService } from "../../services/tags.service";

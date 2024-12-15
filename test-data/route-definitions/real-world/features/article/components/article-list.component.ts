@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component, DestroyRef, inject, Input } from "@angular/core";
 import { ArticlesService } from "../services/articles.service";
 import { ArticleListConfig } from "../models/article-list-config.model";

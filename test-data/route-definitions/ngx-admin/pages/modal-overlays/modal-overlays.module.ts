@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {

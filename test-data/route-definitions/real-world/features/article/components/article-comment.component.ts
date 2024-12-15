@@ -1,3 +1,5 @@
+
+// @ts-nocheck
 import { Component, EventEmitter, Input, Output, inject } from "@angular/core";
 import { UserService } from "../../../core/auth/services/user.service";
 import { User } from "../../../core/auth/user.model";

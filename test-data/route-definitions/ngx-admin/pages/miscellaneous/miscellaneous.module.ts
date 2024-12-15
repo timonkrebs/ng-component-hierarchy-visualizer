@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NgModule } from '@angular/core';
 import { NbButtonModule, NbCardModule } from '@nebular/theme';
 

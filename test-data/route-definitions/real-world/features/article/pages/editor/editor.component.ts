@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NgForOf } from "@angular/common";
 import { Component, DestroyRef, inject, OnInit } from "@angular/core";
 import {

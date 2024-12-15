@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Routes } from "@angular/router";
 import { ProfileComponent } from "./pages/profile/profile.component";
 

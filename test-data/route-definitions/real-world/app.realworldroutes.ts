@@ -1,3 +1,4 @@
+// @ts-nocheck
 /*!
  * This file is adapted from the Angular documentation's routing configuration,
  * which is licensed under the MIT license.

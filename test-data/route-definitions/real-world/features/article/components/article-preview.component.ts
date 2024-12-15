@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Component, Input } from "@angular/core";
 import { Article } from "../models/article.model";
 import { ArticleMetaComponent } from "./article-meta.component";

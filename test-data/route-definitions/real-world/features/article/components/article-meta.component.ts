@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import { Article } from "../models/article.model";
 import { RouterLink } from "@angular/router";

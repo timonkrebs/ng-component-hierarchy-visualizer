@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NgModule } from '@angular/core';
 import { NbCardModule } from '@nebular/theme';
 import { CKEditorModule } from 'ng2-ckeditor';

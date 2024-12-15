@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { Component } from '@angular/core';
-
 import { MENU_ITEMS } from './pages-menu';
 
 export const x = 42;
