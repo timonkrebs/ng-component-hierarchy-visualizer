@@ -37,14 +37,13 @@ export const generateMermaid = (routes) => {
 
         // Remove '@' prefix (if present) for better display
         const formattedParent = parent?.startsWith('@') ? parent.slice(1) : parent;
-        const formattedComponentName = componentName.startsWith('@') ? componentName.slice(1) : componentName;
 
         if (subgraph === 'start') {
             mermaidLines.push(`subgraph ${formattedParent || 'empty-route'}`);
             mermaidLines.push('direction LR'); // Set subgraph direction to left-to-right
         } else {
             const parentNode = formattedParent || 'empty-route'; // Default to 'empty-route' if no parent
-
+            const formattedComponentName = componentName.startsWith('@') ? componentName.slice(1) : componentName;
             if (lazy) {
                 // Lazy-loaded component (dotted line with open arrowhead)
                 mermaidLines.push(`${parentNode} -.-o ${formattedComponentName}(${componentName})`); 

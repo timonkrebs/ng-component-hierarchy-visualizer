@@ -38,6 +38,7 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
             .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
             ?.value.elements);
 
+    // ToDo: add tests for this
     const components = handleRoutes(importNodes, fileContent, withNestedTemplateElements, path.join(path.relative(cwd, p), "../"), c.componentName, recursionDepth);
 
     if (!withNestedTemplateElements) {
