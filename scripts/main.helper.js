@@ -17,7 +17,7 @@ export const main = (args) => {
     const handeledRoutes = handleRoutePaths(routes);
     let elements = resolveComponents(handeledRoutes, routesFileContent);
 
-    elements = addTemplateElements(elements, args.withNestedTemplateElements);
+    elements = addTemplateElements(elements, args.withNestedDependencies);
 
     if (args.withServices) {
         elements = addServices(elements);

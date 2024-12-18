@@ -41,7 +41,7 @@ const loadAllServices = (componentCode, parent, recursionDepth = 0) => {
         ...loadAllConstructorInjectedServices(componentCode, parent),
     ];
 
-    if (recursionDepth > 2 || !services.length) {
+    if (recursionDepth > 100 || !services.length) {
         return uniqueByProperty(services);
     }
 

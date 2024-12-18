@@ -4,16 +4,16 @@ import { parse } from '@typescript-eslint/typescript-estree';
 import { extractRoutesFromTS } from './route.helper.js';
 import { handleRoutePaths, resolveComponents } from './component.helper.js';
 
-export const addTemplateElements = (elements, withNestedTemplateElements, recursionDepth = 0) => {
-    if (recursionDepth > 10) {
+export const addTemplateElements = (elements, withNestedDependencies, recursionDepth = 0) => {
+    if (recursionDepth > 100) {
         return elements;
     }
     return elements
-        .flatMap(e => loadDependencies(e, withNestedTemplateElements, recursionDepth));
+        .flatMap(e => loadDependencies(e, withNestedDependencies, recursionDepth));
 }
 
 
-const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
+const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
     if (c.type !== 'component' || !c.loadComponent) {
         return [c];
     }
@@ -39,9 +39,9 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
             ?.value.elements);
 
     // ToDo: add tests for this
-    const components = handleRoutes(importNodes, fileContent, withNestedTemplateElements, path.join(path.relative(cwd, p), "../"), c.componentName, recursionDepth);
+    const components = handleRoutes(importNodes, fileContent, withNestedDependencies, path.join(path.relative(cwd, p), "../"), c.componentName, recursionDepth);
 
-    if (!withNestedTemplateElements) {
+    if (!withNestedDependencies) {
         return [c, ...components];
     }
 
@@ -68,7 +68,7 @@ const loadDependencies = (c, withNestedTemplateElements, recursionDepth) => {
     return [c, ...components];
 }
 
-const handleRoutes = (importNodes, fileContent, withNestedTemplateElements, p, componentName, recursionDepth) => {
+const handleRoutes = (importNodes, fileContent, withNestedDependencies, p, componentName, recursionDepth) => {
     const provideRouter = importNodes.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
 
     if (provideRouter?.type === 'ArrayExpression') {
@@ -78,7 +78,7 @@ const handleRoutes = (importNodes, fileContent, withNestedTemplateElements, p, c
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const resolvedComponents = resolveComponents(flattenedRoutes, fileContent, p);
 
-        return resolvedComponents.flatMap(c => loadDependencies(c, withNestedTemplateElements, recursionDepth));
+        return resolvedComponents.flatMap(c => loadDependencies(c, withNestedDependencies, recursionDepth));
     }
 
     return [];

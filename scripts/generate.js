@@ -8,15 +8,15 @@ const parseArguments = (argv) => {
         routesFilePath: "app.routes.ts",
         basePath: process.env.INIT_CWD ?? process.cwd(),
         withServices: false,
-        withNestedTemplateElements: false
+        withNestedDependencies: false
     };
 
     for (let index = 1; index < argv.length; index++) {
         const element = argv[index];
         if ("--withservices" === element?.trim().toLowerCase()) {
             args.withServices = true;
-        } else if ("--withnestedtemplateelements" === element?.trim().toLowerCase()) {
-            args.withNestedTemplateElements = true;
+        } else if ("--withNestedDependencies" === element?.trim().toLowerCase()) {
+            args.withNestedDependencies = true;
         } else if (element?.trim().toLowerCase().startsWith("--basepath=")) {
             args.basePath = path.join(process.env.INIT_CWD ?? process.cwd(), element?.trim().slice(11));
         } else {

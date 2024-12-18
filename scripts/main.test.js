@@ -112,7 +112,7 @@ describe('generateDeepNestedRoutes', () => {
             basePath: "./test-data/route-definitions/ngx-admin",
             routesFilePath: 'app-routing.module.ts',
             withServices: true,
-            withNestedTemplateElements: true
+            withNestedDependencies: true
         });
         expect(components).toMatchSnapshot();
     });
@@ -141,7 +141,7 @@ describe('generateLazyComponents', () => {
             basePath: "./test-data/route-definitions/real-world",
             routesFilePath: 'app.routes.ts',
             withServices: true,
-            withNestedTemplateElements: true
+            withNestedDependencies: true
         });
         expect(components).toMatchSnapshot();
     });
@@ -151,7 +151,7 @@ describe('generateLazyComponents', () => {
             basePath: "./test-data/route-definitions/real-world",
             routesFilePath: 'app.realworldroutes.ts',
             withServices: true,
-            withNestedTemplateElements: true
+            withNestedDependencies: true
         });
         expect(components).toMatchSnapshot();
     });

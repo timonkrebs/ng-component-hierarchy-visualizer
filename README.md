@@ -20,7 +20,7 @@ npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy [path-to-routes
 ```
 - Defaults to `app.routes.ts` if no [path-to-routes-file] is provided.
 - Use --withServices to include injected services in the output. (ignores Angular services for clarity)
-- Use --withNestedTemplateElements to include importet standalone elements (components, pipes, directives) in the output. (ignores Angular elements for clarity)
+- Use --withNestedDependencies to include importet standalone elements (components, pipes, directives) in the output. (ignores Angular elements for clarity)
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
@@ -50,11 +50,8 @@ Or it can be pasted into the mermaid live editor:
 # Known Limitations
 At this stage the library does have several limitations:
 
-- **Complex Route Configurations**: The library may not handle very complex route configurations accurately, especially those involving variable routes.
-- **Service Detection**: Limited to services directly injected into components or explicitly imported. It may not detect dynamically injected services.
-- **Recursion Depth**: The library has a fixed recursion depth for detecting nested dependencies, potentially missing very deep or complex chains.
-- **Path Resolution**: Unusual project structures or symbolic links may cause resolution issues.
-- **Mermaid Diagram Complexity**: Large applications may produce complex diagrams that are difficult to read.
+- **Path Resolution**: Unusual project structures may cause resolution issues.
+- **Optimised for Standalone**: Modules only get parsed for the routes.
 
 ## Detective
 Check out [Detective](https://github.com/angular-architects/detective) for even more insights into your Angular/TS Apps.
