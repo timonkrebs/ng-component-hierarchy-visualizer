@@ -164,6 +164,15 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
             lazy: false,
             type: 'component'
         }];
+    } else if (routesFileContent.includes('@Component')) {
+        return [{
+            path: route.path,
+            loadComponent: relativePath,
+            componentName: route.component,
+            parent: route.parent,
+            lazy: false,
+            type: 'component'
+        }];
     } else {
         console.error(`Could not find path for component: ${route.component}`, route);
         return [null];
