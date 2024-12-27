@@ -35,7 +35,7 @@ const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
     const importNodes = parse(fileContent, { range: true }).body
         .filter(n => (n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration') && n.declaration?.decorators)?.flatMap(n => n
             .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
-            .expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
+            ?.expression.arguments[0].properties.filter(n => n.key.name === 'imports')?.[0]
             ?.value.elements);
 
     // ToDo: add tests for this

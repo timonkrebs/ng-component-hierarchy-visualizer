@@ -115,11 +115,7 @@ export const extractRoutesFromTS = (routesString, rootName = ROOT_COMPONENT) => 
         }
 
         try {
-            const resolvedRoutes = extractRoutes(routesArrayNodes, rootName)
-            if (resolvedRoutes.length === 1) {
-                return resolvedRoutes[0];
-            }
-
+            const resolvedRoutes = extractRoutes(routesArrayNodes, rootName);
             return resolvedRoutes;
         } catch (error) {
             console.error('Error extracting route configuration:', error);
