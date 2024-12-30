@@ -4,3 +4,4 @@ https://github.com/mgechev/angular-realworld-example-app-qucklink
 https://github.com/gothinkster/angular-realworld-example-app
 https://github.com/aviabird/angularspree
 https://github.dev/angular/material.angular.io
+https://github.com/emonney/QuickApp
