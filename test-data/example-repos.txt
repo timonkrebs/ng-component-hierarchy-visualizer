@@ -1,3 +1,4 @@
+https://github.com/akveo/ngx-admin
 https://github.com/angular-architects/ngrx-toolkit
 https://github.com/mgechev/angular-realworld-example-app-qucklink
 https://github.com/gothinkster/angular-realworld-example-app
