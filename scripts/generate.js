@@ -15,7 +15,7 @@ const parseArguments = (argv) => {
         const element = argv[index];
         if ("--withservices" === element?.trim().toLowerCase()) {
             args.withServices = true;
-        } else if ("--withNestedDependencies" === element?.trim().toLowerCase()) {
+        } else if ("--withnesteddependencies" === element?.trim().toLowerCase()) {
             args.withNestedDependencies = true;
         } else if (element?.trim().toLowerCase().startsWith("--basepath=")) {
             args.basePath = path.join(process.env.INIT_CWD ?? process.cwd(), element?.trim().slice(11));
