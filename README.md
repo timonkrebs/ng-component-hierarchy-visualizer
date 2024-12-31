@@ -24,34 +24,53 @@ npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy [path-to-routes
 - Use --basePath=<relativePathfromCwd> to execute from this location.
 
 ## Example
-1. go to https://stackblitz.com/edit/dwrgd7?file=package.json
+1. go to [Stackblitz](https://stackblitz.com/github/emonney/QuickApp?file=quickapp.client%2Fsrc%2Fapp%2Fapp.routes.ts) and run:
 ```
-npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy app-routing.module.ts --withServices --basePath=src/app
+npx @tsharp/ng-component-hierarchy-visualizer ng-route-hierarchy app.routes.ts --withServices --basePath=quickapp.client/src/app
 ```
 2. Find file Component-Diagram.mmd
-3. copy output to https://mermaid.live/
+3. copy output to [Mermaid JS](https://mermaid.live/edit#pako:eNqtlMFvmzAYxf8V5NMmhQgIEMotylb1kK1T01PFxbUdYgn8Icfu1qH87zNJE-xCW0Xdjffye59fbEyLCFCGcrSp4DfZYqm81V0h7gCU50998G6gZkuoGxBMqC-O-mpzKyi56EFXOuRS75QZI3c9PbScxC8JVBNlBQaOw99K6ox_pR12zZTiorTogePwi0fQqodd6ZA_QV2DFrSHB47hnR31fN_3Flpt10w-ccLa1hL7_Ri9BLHhpZZYcRDn2Jjb5a1xh_Qtp-SGVQ2T5-jAGst9btUVEFytFUj2AwtcMtm2A6vLDar8h_Rlzcf8i0q8OWDRNPcSi13lFhm13x10v2V1X8JWh60fm3fMvdjsvPZrp8u79_jYvGJS9YUt9VbgnRd6BL_shAa39bgkIeaiWS0dfdgYx_mw5xh-tL4L2gAX6rzIybBiJ-vi_4cmyHwWa8yp-US3hfC8AqnuiAuUm0fKNlhXqkCF6FCsFayfBUG5kppNkARdblG-wdXOKN1Qc7bfOC4lrk9Ig8UDgC1R3qI_KA-D2XQeJ0GYZGl0NZ9FVxP0jPIoiqZJFoVpnIZBmEXJbD9Bfw8TgmkWx0mcBUlqfknTYL7_B_V8XcE)
 
 # Output
 Generates Mermaid Flowcharts that can be used directly in github and everywhere else where [mermaid is rendered natively](https://mermaid.js.org/ecosystem/integrations-community.html#community-integrations).
 
 ```mermaid
 flowchart LR
-Root --o DashboardComponent(DashboardComponent)
-Root --o HeroDetailComponent(HeroDetailComponent)
-Root --o HeroesComponent(HeroesComponent)
-DashboardComponent --- HeroService{{HeroService}}
-HeroService --- MessageService{{MessageService}}
-HeroDetailComponent --- HeroService{{HeroService}}
-HeroesComponent --- HeroService{{HeroService}}
+Root -.-o HomeComponent(HomeComponent)
+Root -.-o LoginComponent(LoginComponent)
+Root -.-o CustomersComponent(CustomersComponent)
+Root -.-o ProductsComponent(ProductsComponent)
+Root -.-o OrdersComponent(OrdersComponent)
+Root -.-o SettingsComponent(SettingsComponent)
+Root -.-o AboutComponent(AboutComponent)
+Root -.-o NotFoundComponent(NotFoundComponent)
+HomeComponent --- AuthService{{AuthService}}
+HomeComponent --- ConfigurationService{{ConfigurationService}}
+AuthService --- OidcHelperService{{OidcHelperService}}
+AuthService --- ConfigurationService{{ConfigurationService}}
+AuthService --- LocalStoreManager{{LocalStoreManager}}
+OidcHelperService --- LocalStoreManager{{LocalStoreManager}}
+OidcHelperService --- ConfigurationService{{ConfigurationService}}
+ConfigurationService --- LocalStoreManager{{LocalStoreManager}}
+ConfigurationService --- AppTranslationService{{AppTranslationService}}
+ConfigurationService --- ThemeManager{{ThemeManager}}
+AppTranslationService --- TranslateService{{TranslateService}}
+LoginComponent --- AlertService{{AlertService}}
+LoginComponent --- AuthService{{AuthService}}
+LoginComponent --- ConfigurationService{{ConfigurationService}}
+SettingsComponent --- AccountService{{AccountService}}
+AccountService --- AuthService{{AuthService}}
+AccountService --- AccountEndpoint{{AccountEndpoint}}
+AccountEndpoint --- ConfigurationService{{ConfigurationService}}
 ```
 Or it can be pasted into the mermaid live editor:
-[Mermaid JS](https://mermaid.live/edit#pako:eNqNkU1PhDAQhv8KmRMmsNktHyU9mBg5ePC2N6mHEboLEVpSiroS_rt1dV0UkvU27zPTZybpALkqBDDY1eo1L1EbLm_a9lY1rZJCGpJN06Pj-9dOil35pFAXP9ydo6vLnjuhVSoMVvVZtMD-aRLdb8skW8P8wGyOzrKt0C9VLtxJbSULx2UL7Etzr3I0lZLuqfgWTO7K_uRL-7kEDxqhG6wK-2UDl47DwZSiERyYLQvUzxy4HO0c9kZtDzIHZnQvPNCq35en0LcFGpFWuNfYANth3VnaogQ2wBswP0nIKgxCmlAaJDENAw8OwCKyspHQMCaWbsjowbtSVmCHoyCi63gdBsS-2xxlD8fe58bxAyrP17w)
+[Mermaid JS](https://mermaid.live/edit#pako:eNqtlMFvmzAYxf8V5NMmhQgIEMotylb1kK1T01PFxbUdYgn8Icfu1qH87zNJE-xCW0Xdjffye59fbEyLCFCGcrSp4DfZYqm81V0h7gCU50998G6gZkuoGxBMqC-O-mpzKyi56EFXOuRS75QZI3c9PbScxC8JVBNlBQaOw99K6ox_pR12zZTiorTogePwi0fQqodd6ZA_QV2DFrSHB47hnR31fN_3Flpt10w-ccLa1hL7_Ri9BLHhpZZYcRDn2Jjb5a1xh_Qtp-SGVQ2T5-jAGst9btUVEFytFUj2AwtcMtm2A6vLDar8h_Rlzcf8i0q8OWDRNPcSi13lFhm13x10v2V1X8JWh60fm3fMvdjsvPZrp8u79_jYvGJS9YUt9VbgnRd6BL_shAa39bgkIeaiWS0dfdgYx_mw5xh-tL4L2gAX6rzIybBiJ-vi_4cmyHwWa8yp-US3hfC8AqnuiAuUm0fKNlhXqkCF6FCsFayfBUG5kppNkARdblG-wdXOKN1Qc7bfOC4lrk9Ig8UDgC1R3qI_KA-D2XQeJ0GYZGl0NZ9FVxP0jPIoiqZJFoVpnIZBmEXJbD9Bfw8TgmkWx0mcBUlqfknTYL7_B_V8XcE)
 
 # Known Limitations
-At this stage the library does have several limitations:
+At this stage the library does have some limitations:
 
-- **Path Resolution**: Unusual project structures may cause resolution issues.
 - **Optimised for Standalone**: Modules only get parsed for the routes.
+- **Path Resolution**: Unusual project structures may cause resolution issues.
 
 ## Detective
 Check out [Detective](https://github.com/angular-architects/detective) for even more insights into your Angular/TS Apps.
