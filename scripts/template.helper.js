@@ -75,7 +75,6 @@ const handleRoutes = (importNodes, fileContent, withNestedDependencies, p, compo
         const routes = extractRoutesFromTS(fileContent.substring(...provideRouter.range), componentName);
         const flattenedRoutes = handleRoutePaths(routes);
 
-        const cwd = process.env.INIT_CWD ?? process.cwd();
         const resolvedComponents = resolveComponents(flattenedRoutes, fileContent, p);
 
         return resolvedComponents.flatMap(c => loadDependencies(c, withNestedDependencies, recursionDepth));
