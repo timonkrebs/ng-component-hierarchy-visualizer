@@ -118,6 +118,18 @@ describe('generateDeepNestedRoutes', () => {
     });
 });
 
+describe('generateHostDirectives', () => {
+    it('should resolve host directives from components', () => {
+        const components = main({
+            basePath: "./test-data/route-definitions/host-directives-test",
+            routesFilePath: 'app.routes.ts',
+            withServices: true,
+            withNestedDependencies: true
+        });
+        expect(components).toMatchSnapshot();
+    });
+});
+
 describe('generateLazyComponents', () => {
     it('should resolve satisfy components from routes', () => {
         const components = main({

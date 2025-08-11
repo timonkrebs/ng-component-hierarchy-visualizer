@@ -32,57 +32,65 @@ const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
         c.componentName = nameMatches[0][1];
     }
 
-    const importNodes = parse(fileContent, { range: true }).body
-        .filter(n => (n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration') && n.declaration?.decorators)?.flatMap(n => n
-            .declaration.decorators.filter(d => d.expression.callee?.name === 'Component')?.[0]
-            ?.expression.arguments[0].properties.filter(n => n.key.name === 'imports' || n.key.name === 'hostDirectives')?.[0]
-            ?.value.elements);
+    const ast = parse(fileContent, { range: true });
+    const componentDecorator = ast.body
+        .filter(n => (n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration') && n.declaration?.decorators)
+        .flatMap(n => n.declaration.decorators)
+        .find(d => d.expression.callee?.name === 'Component');
 
-    // ToDo: add tests for this
+    const decoratorProperties = componentDecorator?.expression.arguments[0].properties;
+
+    const importNodes = decoratorProperties?.find(p => p.key.name === 'imports')?.value.elements || [];
+    const hostDirectiveNodes = decoratorProperties?.find(p => p.key.name === 'hostDirectives')?.value.elements || [];
+
     const components = handleRoutes(importNodes, fileContent, withNestedDependencies, path.join(path.relative(cwd, p), "../"), c.componentName, recursionDepth);
 
     if (!withNestedDependencies) {
         return [c, ...components];
     }
 
-    // Extract both direct identifiers and hostDirective property expressions
-    const identifierNodes = importNodes.filter(n => 
-        n?.type === 'Identifier' || 
+    const importedComponents = extractDependencies(importNodes, 'import', fileContent, c.componentName, path.relative(cwd, p));
+    const hostDirectives = extractDependencies(hostDirectiveNodes, 'hostDirective', fileContent, c.componentName, path.relative(cwd, p));
+
+    components.push(...importedComponents, ...hostDirectives);
+
+    const x = addTemplateElements(components, recursionDepth + 1);
+    return [c, ...x];
+}
+
+const extractDependencies = (nodes, type, fileContent, parentComponent, relativePath) => {
+    if (!nodes || nodes.length === 0) {
+        return [];
+    }
+
+    const identifierNodes = nodes.filter(n =>
+        n?.type === 'Identifier' ||
         (n?.type === 'ObjectExpression' && n.properties.some(p => p.key.name === 'directive'))
     );
 
-    if (identifierNodes?.length) {
-        try {
-            // Extract component names from both regular imports and hostDirectives
-            const importsContent = identifierNodes.map(e => {
-                if (e.type === 'Identifier') {
-                    return e.name;
-                } else if (e.type === 'ObjectExpression') {
-                    const directiveProp = e.properties.find(p => p.key.name === 'directive');
-                    return directiveProp?.value?.name;
-                }
-                return null;
-            }).filter(Boolean);
-
-            importsContent.forEach(componentName => {
-                const comp = handleComponent(componentName, fileContent, c.componentName, path.relative(cwd, p));
-                if (comp) {
-                    components.push(comp);
-                }
-            });
-
-            const x = addTemplateElements(components, recursionDepth + 1);
-            return [c, ...x];
-        } catch {
-            console.error(`Could not resolve imports for component: ${c.componentName}`);
+    const dependencyNames = identifierNodes.map(e => {
+        if (e.type === 'Identifier') {
+            return e.name;
+        } else if (e.type === 'ObjectExpression') {
+            const directiveProp = e.properties.find(p => p.key.name === 'directive');
+            return directiveProp?.value?.name;
         }
-    }
+        return null;
+    }).filter(Boolean);
 
-    return [c, ...components];
-}
+    return dependencyNames.map(componentName => {
+        const comp = handleComponent(componentName, fileContent, parentComponent, relativePath);
+        if (comp) {
+            comp.type = type;
+            return comp;
+        }
+        return null;
+    }).filter(Boolean);
+};
+
 
 const handleRoutes = (importNodes, fileContent, withNestedDependencies, p, componentName, recursionDepth) => {
-    const provideRouter = importNodes.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
+    const provideRouter = importNodes?.filter(n => n?.type === 'CallExpression' && n.callee.name === 'provideRouter')?.[0]?.arguments?.[0];
 
     if (provideRouter?.type === 'ArrayExpression') {
         const routes = extractRoutesFromTS(fileContent.substring(...provideRouter.range), componentName);

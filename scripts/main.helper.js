@@ -57,6 +57,10 @@ export const generateMermaid = (routes) => {
                         // Import (solid line with square brackets)
                         mermaidLines.push(`${parentNode} ---${formattedComponentName}([${componentName}])`);
                         break;
+                    case 'hostDirective':
+                        // Host Directive (dotted line with normal arrow and curly braces)
+                        mermaidLines.push(`${parentNode} -.-> ${formattedComponentName}{{${componentName}}}`);
+                        break;
                     default:
                         // Standard component (solid line with open arrowhead)
                         mermaidLines.push(`${parentNode} --o ${formattedComponentName}(${componentName})`);
