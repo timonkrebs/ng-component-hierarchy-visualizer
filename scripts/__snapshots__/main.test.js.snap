@@ -4,563 +4,563 @@ exports[`generateDeepNestedRoutes should resolve compact components from routes 
 "flowchart LR
 subgraph PagesModule
 direction LR
-pages --o PagesComponent(PagesComponent)
-pages --o ECommerceComponent(ECommerceComponent)
-pages --o DashboardComponent(DashboardComponent)
+pages --o PagesComponent("PagesComponent")
+pages --o ECommerceComponent("ECommerceComponent")
+pages --o DashboardComponent("DashboardComponent")
 subgraph LayoutModule
 direction LR
-layout --o LayoutComponent(LayoutComponent)
-layout --o StepperComponent(StepperComponent)
-layout --o ListComponent(ListComponent)
-layout --o InfiniteListComponent(InfiniteListComponent)
-layout --o AccordionComponent(AccordionComponent)
-layout --o TabsComponent(TabsComponent)
-layout --o Tab1Component(Tab1Component)
-layout --o Tab2Component(Tab2Component)
+layout --o LayoutComponent("LayoutComponent")
+layout --o StepperComponent("StepperComponent")
+layout --o ListComponent("ListComponent")
+layout --o InfiniteListComponent("InfiniteListComponent")
+layout --o AccordionComponent("AccordionComponent")
+layout --o TabsComponent("TabsComponent")
+layout --o Tab1Component("Tab1Component")
+layout --o Tab2Component("Tab2Component")
 end
-pages -.-o LayoutModule(LayoutModule)
+pages -.-o LayoutModule("LayoutModule")
 subgraph FormsModule
 direction LR
-forms --o FormsComponent(FormsComponent)
-forms --o FormInputsComponent(FormInputsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o ButtonsComponent(ButtonsComponent)
-forms --o DatepickerComponent(DatepickerComponent)
+forms --o FormsComponent("FormsComponent")
+forms --o FormInputsComponent("FormInputsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o ButtonsComponent("ButtonsComponent")
+forms --o DatepickerComponent("DatepickerComponent")
 end
-pages -.-o FormsModule(FormsModule)
+pages -.-o FormsModule("FormsModule")
 subgraph UiFeaturesModule
 direction LR
-ui-features --o UiFeaturesComponent(UiFeaturesComponent)
-ui-features --o GridComponent(GridComponent)
-ui-features --o IconsComponent(IconsComponent)
-ui-features --o TypographyComponent(TypographyComponent)
-ui-features --o SearchComponent(SearchComponent)
+ui_features --o UiFeaturesComponent("UiFeaturesComponent")
+ui_features --o GridComponent("GridComponent")
+ui_features --o IconsComponent("IconsComponent")
+ui_features --o TypographyComponent("TypographyComponent")
+ui_features --o SearchComponent("SearchComponent")
 end
-pages -.-o UiFeaturesModule(UiFeaturesModule)
+pages -.-o UiFeaturesModule("UiFeaturesModule")
 subgraph ModalOverlaysModule
 direction LR
-modal-overlays --o ModalOverlaysComponent(ModalOverlaysComponent)
-modal-overlays --o DialogComponent(DialogComponent)
-modal-overlays --o WindowComponent(WindowComponent)
-modal-overlays --o PopoversComponent(PopoversComponent)
-modal-overlays --o TooltipComponent(TooltipComponent)
-modal-overlays --o ToastrComponent(ToastrComponent)
+modal_overlays --o ModalOverlaysComponent("ModalOverlaysComponent")
+modal_overlays --o DialogComponent("DialogComponent")
+modal_overlays --o WindowComponent("WindowComponent")
+modal_overlays --o PopoversComponent("PopoversComponent")
+modal_overlays --o TooltipComponent("TooltipComponent")
+modal_overlays --o ToastrComponent("ToastrComponent")
 end
-pages -.-o ModalOverlaysModule(ModalOverlaysModule)
+pages -.-o ModalOverlaysModule("ModalOverlaysModule")
 subgraph ExtraComponentsModule
 direction LR
-extra-components --o ExtraComponentsComponent(ExtraComponentsComponent)
-extra-components --o CalendarComponent(CalendarComponent)
-extra-components --o ProgressBarComponent(ProgressBarComponent)
-extra-components --o SpinnerComponent(SpinnerComponent)
-extra-components --o AlertComponent(AlertComponent)
-extra-components --o CalendarKitFullCalendarShowcaseComponent(CalendarKitFullCalendarShowcaseComponent)
-extra-components --o ChatComponent(ChatComponent)
+extra_components --o ExtraComponentsComponent("ExtraComponentsComponent")
+extra_components --o CalendarComponent("CalendarComponent")
+extra_components --o ProgressBarComponent("ProgressBarComponent")
+extra_components --o SpinnerComponent("SpinnerComponent")
+extra_components --o AlertComponent("AlertComponent")
+extra_components --o CalendarKitFullCalendarShowcaseComponent("CalendarKitFullCalendarShowcaseComponent")
+extra_components --o ChatComponent("ChatComponent")
 end
-pages -.-o ExtraComponentsModule(ExtraComponentsModule)
+pages -.-o ExtraComponentsModule("ExtraComponentsModule")
 subgraph MapsModule
 direction LR
-maps --o MapsComponent(MapsComponent)
-maps --o GmapsComponent(GmapsComponent)
-maps --o LeafletComponent(LeafletComponent)
-maps --o BubbleMapComponent(BubbleMapComponent)
-maps --o SearchMapComponent(SearchMapComponent)
+maps --o MapsComponent("MapsComponent")
+maps --o GmapsComponent("GmapsComponent")
+maps --o LeafletComponent("LeafletComponent")
+maps --o BubbleMapComponent("BubbleMapComponent")
+maps --o SearchMapComponent("SearchMapComponent")
 end
-pages -.-o MapsModule(MapsModule)
+pages -.-o MapsModule("MapsModule")
 subgraph ChartsModule
 direction LR
-charts --o ChartsComponent(ChartsComponent)
-charts --o EchartsComponent(EchartsComponent)
-charts --o D3Component(D3Component)
-charts --o ChartjsComponent(ChartjsComponent)
+charts --o ChartsComponent("ChartsComponent")
+charts --o EchartsComponent("EchartsComponent")
+charts --o D3Component("D3Component")
+charts --o ChartjsComponent("ChartjsComponent")
 end
-pages -.-o ChartsModule(ChartsModule)
+pages -.-o ChartsModule("ChartsModule")
 subgraph EditorsModule
 direction LR
-editors --o EditorsComponent(EditorsComponent)
-editors --o TinyMCEComponent(TinyMCEComponent)
-editors --o CKEditorComponent(CKEditorComponent)
+editors --o EditorsComponent("EditorsComponent")
+editors --o TinyMCEComponent("TinyMCEComponent")
+editors --o CKEditorComponent("CKEditorComponent")
 end
-pages -.-o EditorsModule(EditorsModule)
+pages -.-o EditorsModule("EditorsModule")
 subgraph TablesModule
 direction LR
-tables --o TablesComponent(TablesComponent)
-tables --o SmartTableComponent(SmartTableComponent)
-tables --o TreeGridComponent(TreeGridComponent)
+tables --o TablesComponent("TablesComponent")
+tables --o SmartTableComponent("SmartTableComponent")
+tables --o TreeGridComponent("TreeGridComponent")
 end
-pages -.-o TablesModule(TablesModule)
+pages -.-o TablesModule("TablesModule")
 subgraph MiscellaneousModule
 direction LR
-miscellaneous --o MiscellaneousComponent(MiscellaneousComponent)
-miscellaneous --o NotFoundComponent(NotFoundComponent)
+miscellaneous --o MiscellaneousComponent("MiscellaneousComponent")
+miscellaneous --o NotFoundComponent("NotFoundComponent")
 end
-pages -.-o MiscellaneousModule(MiscellaneousModule)
-pages --o NotFoundComponent(NotFoundComponent)
+pages -.-o MiscellaneousModule("MiscellaneousModule")
+pages --o NotFoundComponent("NotFoundComponent")
 end
-Root -.-o PagesModule(PagesModule)
-Root --o NbAuthComponent(NbAuthComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbRegisterComponent(NbRegisterComponent)
-Root --o NbLogoutComponent(NbLogoutComponent)
-Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-Root --o NbResetPasswordComponent(NbResetPasswordComponent)
-DashboardComponent --- NbThemeService{{NbThemeService}}
-DashboardComponent --- SolarData{{SolarData}}
-NotFoundComponent --- NbMenuService{{NbMenuService}}"
+Root -.-o PagesModule("PagesModule")
+Root --o NbAuthComponent("NbAuthComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbRegisterComponent("NbRegisterComponent")
+Root --o NbLogoutComponent("NbLogoutComponent")
+Root --o NbRequestPasswordComponent("NbRequestPasswordComponent")
+Root --o NbResetPasswordComponent("NbResetPasswordComponent")
+DashboardComponent --- NbThemeService{{"NbThemeService"}}
+DashboardComponent --- SolarData{{"SolarData"}}
+NotFoundComponent --- NbMenuService{{"NbMenuService"}}"
 `;
 
 exports[`generateDeepNestedRoutes should resolve components from routes 1`] = `
 "flowchart LR
 subgraph PagesModule
 direction LR
-pages --o PagesComponent(PagesComponent)
-pages --o ECommerceComponent(ECommerceComponent)
-pages --o DashboardComponent(DashboardComponent)
+pages --o PagesComponent("PagesComponent")
+pages --o ECommerceComponent("ECommerceComponent")
+pages --o DashboardComponent("DashboardComponent")
 subgraph LayoutModule
 direction LR
-layout --o LayoutComponent(LayoutComponent)
-layout --o StepperComponent(StepperComponent)
-layout --o ListComponent(ListComponent)
-layout --o InfiniteListComponent(InfiniteListComponent)
-layout --o AccordionComponent(AccordionComponent)
-layout --o TabsComponent(TabsComponent)
-layout --o Tab1Component(Tab1Component)
-layout --o Tab2Component(Tab2Component)
+layout --o LayoutComponent("LayoutComponent")
+layout --o StepperComponent("StepperComponent")
+layout --o ListComponent("ListComponent")
+layout --o InfiniteListComponent("InfiniteListComponent")
+layout --o AccordionComponent("AccordionComponent")
+layout --o TabsComponent("TabsComponent")
+layout --o Tab1Component("Tab1Component")
+layout --o Tab2Component("Tab2Component")
 end
-pages -.-o LayoutModule(LayoutModule)
+pages -.-o LayoutModule("LayoutModule")
 subgraph FormsModule
 direction LR
-forms --o FormsComponent(FormsComponent)
-forms --o FormInputsComponent(FormInputsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o ButtonsComponent(ButtonsComponent)
-forms --o DatepickerComponent(DatepickerComponent)
+forms --o FormsComponent("FormsComponent")
+forms --o FormInputsComponent("FormInputsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o ButtonsComponent("ButtonsComponent")
+forms --o DatepickerComponent("DatepickerComponent")
 end
-pages -.-o FormsModule(FormsModule)
+pages -.-o FormsModule("FormsModule")
 subgraph UiFeaturesModule
 direction LR
-ui-features --o UiFeaturesComponent(UiFeaturesComponent)
-ui-features --o GridComponent(GridComponent)
-ui-features --o IconsComponent(IconsComponent)
-ui-features --o TypographyComponent(TypographyComponent)
-ui-features --o SearchComponent(SearchComponent)
+ui_features --o UiFeaturesComponent("UiFeaturesComponent")
+ui_features --o GridComponent("GridComponent")
+ui_features --o IconsComponent("IconsComponent")
+ui_features --o TypographyComponent("TypographyComponent")
+ui_features --o SearchComponent("SearchComponent")
 end
-pages -.-o UiFeaturesModule(UiFeaturesModule)
+pages -.-o UiFeaturesModule("UiFeaturesModule")
 subgraph ModalOverlaysModule
 direction LR
-modal-overlays --o ModalOverlaysComponent(ModalOverlaysComponent)
-modal-overlays --o DialogComponent(DialogComponent)
-modal-overlays --o WindowComponent(WindowComponent)
-modal-overlays --o PopoversComponent(PopoversComponent)
-modal-overlays --o TooltipComponent(TooltipComponent)
-modal-overlays --o ToastrComponent(ToastrComponent)
+modal_overlays --o ModalOverlaysComponent("ModalOverlaysComponent")
+modal_overlays --o DialogComponent("DialogComponent")
+modal_overlays --o WindowComponent("WindowComponent")
+modal_overlays --o PopoversComponent("PopoversComponent")
+modal_overlays --o TooltipComponent("TooltipComponent")
+modal_overlays --o ToastrComponent("ToastrComponent")
 end
-pages -.-o ModalOverlaysModule(ModalOverlaysModule)
+pages -.-o ModalOverlaysModule("ModalOverlaysModule")
 subgraph ExtraComponentsModule
 direction LR
-extra-components --o ExtraComponentsComponent(ExtraComponentsComponent)
-extra-components --o CalendarComponent(CalendarComponent)
-extra-components --o ProgressBarComponent(ProgressBarComponent)
-extra-components --o SpinnerComponent(SpinnerComponent)
-extra-components --o AlertComponent(AlertComponent)
-extra-components --o CalendarKitFullCalendarShowcaseComponent(CalendarKitFullCalendarShowcaseComponent)
-extra-components --o ChatComponent(ChatComponent)
+extra_components --o ExtraComponentsComponent("ExtraComponentsComponent")
+extra_components --o CalendarComponent("CalendarComponent")
+extra_components --o ProgressBarComponent("ProgressBarComponent")
+extra_components --o SpinnerComponent("SpinnerComponent")
+extra_components --o AlertComponent("AlertComponent")
+extra_components --o CalendarKitFullCalendarShowcaseComponent("CalendarKitFullCalendarShowcaseComponent")
+extra_components --o ChatComponent("ChatComponent")
 end
-pages -.-o ExtraComponentsModule(ExtraComponentsModule)
+pages -.-o ExtraComponentsModule("ExtraComponentsModule")
 subgraph MapsModule
 direction LR
-maps --o MapsComponent(MapsComponent)
-maps --o GmapsComponent(GmapsComponent)
-maps --o LeafletComponent(LeafletComponent)
-maps --o BubbleMapComponent(BubbleMapComponent)
-maps --o SearchMapComponent(SearchMapComponent)
+maps --o MapsComponent("MapsComponent")
+maps --o GmapsComponent("GmapsComponent")
+maps --o LeafletComponent("LeafletComponent")
+maps --o BubbleMapComponent("BubbleMapComponent")
+maps --o SearchMapComponent("SearchMapComponent")
 end
-pages -.-o MapsModule(MapsModule)
+pages -.-o MapsModule("MapsModule")
 subgraph ChartsModule
 direction LR
-charts --o ChartsComponent(ChartsComponent)
-charts --o EchartsComponent(EchartsComponent)
-charts --o D3Component(D3Component)
-charts --o ChartjsComponent(ChartjsComponent)
+charts --o ChartsComponent("ChartsComponent")
+charts --o EchartsComponent("EchartsComponent")
+charts --o D3Component("D3Component")
+charts --o ChartjsComponent("ChartjsComponent")
 end
-pages -.-o ChartsModule(ChartsModule)
+pages -.-o ChartsModule("ChartsModule")
 subgraph EditorsModule
 direction LR
-editors --o EditorsComponent(EditorsComponent)
-editors --o TinyMCEComponent(TinyMCEComponent)
-editors --o CKEditorComponent(CKEditorComponent)
+editors --o EditorsComponent("EditorsComponent")
+editors --o TinyMCEComponent("TinyMCEComponent")
+editors --o CKEditorComponent("CKEditorComponent")
 end
-pages -.-o EditorsModule(EditorsModule)
+pages -.-o EditorsModule("EditorsModule")
 subgraph TablesModule
 direction LR
-tables --o TablesComponent(TablesComponent)
-tables --o SmartTableComponent(SmartTableComponent)
-tables --o TreeGridComponent(TreeGridComponent)
+tables --o TablesComponent("TablesComponent")
+tables --o SmartTableComponent("SmartTableComponent")
+tables --o TreeGridComponent("TreeGridComponent")
 end
-pages -.-o TablesModule(TablesModule)
+pages -.-o TablesModule("TablesModule")
 subgraph MiscellaneousModule
 direction LR
-miscellaneous --o MiscellaneousComponent(MiscellaneousComponent)
-miscellaneous --o NotFoundComponent(NotFoundComponent)
+miscellaneous --o MiscellaneousComponent("MiscellaneousComponent")
+miscellaneous --o NotFoundComponent("NotFoundComponent")
 end
-pages -.-o MiscellaneousModule(MiscellaneousModule)
-pages --o NotFoundComponent(NotFoundComponent)
+pages -.-o MiscellaneousModule("MiscellaneousModule")
+pages --o NotFoundComponent("NotFoundComponent")
 end
-Root -.-o PagesModule(PagesModule)
-Root --o NbAuthComponent(NbAuthComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbRegisterComponent(NbRegisterComponent)
-Root --o NbLogoutComponent(NbLogoutComponent)
-Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-Root --o NbResetPasswordComponent(NbResetPasswordComponent)
-DashboardComponent --- NbThemeService{{NbThemeService}}
-DashboardComponent --- SolarData{{SolarData}}
-NotFoundComponent --- NbMenuService{{NbMenuService}}"
+Root -.-o PagesModule("PagesModule")
+Root --o NbAuthComponent("NbAuthComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbRegisterComponent("NbRegisterComponent")
+Root --o NbLogoutComponent("NbLogoutComponent")
+Root --o NbRequestPasswordComponent("NbRequestPasswordComponent")
+Root --o NbResetPasswordComponent("NbResetPasswordComponent")
+DashboardComponent --- NbThemeService{{"NbThemeService"}}
+DashboardComponent --- SolarData{{"SolarData"}}
+NotFoundComponent --- NbMenuService{{"NbMenuService"}}"
 `;
 
 exports[`generateDeepNestedRoutes should resolve provideRouter components from routes 1`] = `
 "flowchart LR
 subgraph PagesModule
 direction LR
-pages --o PagesComponent(PagesComponent)
-pages --o ECommerceComponent(ECommerceComponent)
-pages --o DashboardComponent(DashboardComponent)
+pages --o PagesComponent("PagesComponent")
+pages --o ECommerceComponent("ECommerceComponent")
+pages --o DashboardComponent("DashboardComponent")
 subgraph LayoutModule
 direction LR
-layout --o LayoutComponent(LayoutComponent)
-layout --o StepperComponent(StepperComponent)
-layout --o ListComponent(ListComponent)
-layout --o InfiniteListComponent(InfiniteListComponent)
-layout --o AccordionComponent(AccordionComponent)
-layout --o TabsComponent(TabsComponent)
-layout --o Tab1Component(Tab1Component)
-layout --o Tab2Component(Tab2Component)
+layout --o LayoutComponent("LayoutComponent")
+layout --o StepperComponent("StepperComponent")
+layout --o ListComponent("ListComponent")
+layout --o InfiniteListComponent("InfiniteListComponent")
+layout --o AccordionComponent("AccordionComponent")
+layout --o TabsComponent("TabsComponent")
+layout --o Tab1Component("Tab1Component")
+layout --o Tab2Component("Tab2Component")
 end
-pages -.-o LayoutModule(LayoutModule)
+pages -.-o LayoutModule("LayoutModule")
 subgraph FormsModule
 direction LR
-forms --o FormsComponent(FormsComponent)
-forms --o FormInputsComponent(FormInputsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o ButtonsComponent(ButtonsComponent)
-forms --o DatepickerComponent(DatepickerComponent)
+forms --o FormsComponent("FormsComponent")
+forms --o FormInputsComponent("FormInputsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o ButtonsComponent("ButtonsComponent")
+forms --o DatepickerComponent("DatepickerComponent")
 end
-pages -.-o FormsModule(FormsModule)
+pages -.-o FormsModule("FormsModule")
 subgraph UiFeaturesModule
 direction LR
-ui-features --o UiFeaturesComponent(UiFeaturesComponent)
-ui-features --o GridComponent(GridComponent)
-ui-features --o IconsComponent(IconsComponent)
-ui-features --o TypographyComponent(TypographyComponent)
-ui-features --o SearchComponent(SearchComponent)
+ui_features --o UiFeaturesComponent("UiFeaturesComponent")
+ui_features --o GridComponent("GridComponent")
+ui_features --o IconsComponent("IconsComponent")
+ui_features --o TypographyComponent("TypographyComponent")
+ui_features --o SearchComponent("SearchComponent")
 end
-pages -.-o UiFeaturesModule(UiFeaturesModule)
+pages -.-o UiFeaturesModule("UiFeaturesModule")
 subgraph ModalOverlaysModule
 direction LR
-modal-overlays --o ModalOverlaysComponent(ModalOverlaysComponent)
-modal-overlays --o DialogComponent(DialogComponent)
-modal-overlays --o WindowComponent(WindowComponent)
-modal-overlays --o PopoversComponent(PopoversComponent)
-modal-overlays --o TooltipComponent(TooltipComponent)
-modal-overlays --o ToastrComponent(ToastrComponent)
+modal_overlays --o ModalOverlaysComponent("ModalOverlaysComponent")
+modal_overlays --o DialogComponent("DialogComponent")
+modal_overlays --o WindowComponent("WindowComponent")
+modal_overlays --o PopoversComponent("PopoversComponent")
+modal_overlays --o TooltipComponent("TooltipComponent")
+modal_overlays --o ToastrComponent("ToastrComponent")
 end
-pages -.-o ModalOverlaysModule(ModalOverlaysModule)
+pages -.-o ModalOverlaysModule("ModalOverlaysModule")
 subgraph ExtraComponentsModule
 direction LR
-extra-components --o ExtraComponentsComponent(ExtraComponentsComponent)
-extra-components --o CalendarComponent(CalendarComponent)
-extra-components --o ProgressBarComponent(ProgressBarComponent)
-extra-components --o SpinnerComponent(SpinnerComponent)
-extra-components --o AlertComponent(AlertComponent)
-extra-components --o CalendarKitFullCalendarShowcaseComponent(CalendarKitFullCalendarShowcaseComponent)
-extra-components --o ChatComponent(ChatComponent)
+extra_components --o ExtraComponentsComponent("ExtraComponentsComponent")
+extra_components --o CalendarComponent("CalendarComponent")
+extra_components --o ProgressBarComponent("ProgressBarComponent")
+extra_components --o SpinnerComponent("SpinnerComponent")
+extra_components --o AlertComponent("AlertComponent")
+extra_components --o CalendarKitFullCalendarShowcaseComponent("CalendarKitFullCalendarShowcaseComponent")
+extra_components --o ChatComponent("ChatComponent")
 end
-pages -.-o ExtraComponentsModule(ExtraComponentsModule)
+pages -.-o ExtraComponentsModule("ExtraComponentsModule")
 subgraph MapsModule
 direction LR
-maps --o MapsComponent(MapsComponent)
-maps --o GmapsComponent(GmapsComponent)
-maps --o LeafletComponent(LeafletComponent)
-maps --o BubbleMapComponent(BubbleMapComponent)
-maps --o SearchMapComponent(SearchMapComponent)
+maps --o MapsComponent("MapsComponent")
+maps --o GmapsComponent("GmapsComponent")
+maps --o LeafletComponent("LeafletComponent")
+maps --o BubbleMapComponent("BubbleMapComponent")
+maps --o SearchMapComponent("SearchMapComponent")
 end
-pages -.-o MapsModule(MapsModule)
+pages -.-o MapsModule("MapsModule")
 subgraph ChartsModule
 direction LR
-charts --o ChartsComponent(ChartsComponent)
-charts --o EchartsComponent(EchartsComponent)
-charts --o D3Component(D3Component)
-charts --o ChartjsComponent(ChartjsComponent)
+charts --o ChartsComponent("ChartsComponent")
+charts --o EchartsComponent("EchartsComponent")
+charts --o D3Component("D3Component")
+charts --o ChartjsComponent("ChartjsComponent")
 end
-pages -.-o ChartsModule(ChartsModule)
+pages -.-o ChartsModule("ChartsModule")
 subgraph EditorsModule
 direction LR
-editors --o EditorsComponent(EditorsComponent)
-editors --o TinyMCEComponent(TinyMCEComponent)
-editors --o CKEditorComponent(CKEditorComponent)
+editors --o EditorsComponent("EditorsComponent")
+editors --o TinyMCEComponent("TinyMCEComponent")
+editors --o CKEditorComponent("CKEditorComponent")
 end
-pages -.-o EditorsModule(EditorsModule)
+pages -.-o EditorsModule("EditorsModule")
 subgraph TablesModule
 direction LR
-tables --o TablesComponent(TablesComponent)
-tables --o SmartTableComponent(SmartTableComponent)
-tables --o TreeGridComponent(TreeGridComponent)
+tables --o TablesComponent("TablesComponent")
+tables --o SmartTableComponent("SmartTableComponent")
+tables --o TreeGridComponent("TreeGridComponent")
 end
-pages -.-o TablesModule(TablesModule)
+pages -.-o TablesModule("TablesModule")
 subgraph MiscellaneousModule
 direction LR
-miscellaneous --o MiscellaneousComponent(MiscellaneousComponent)
-miscellaneous --o NotFoundComponent(NotFoundComponent)
+miscellaneous --o MiscellaneousComponent("MiscellaneousComponent")
+miscellaneous --o NotFoundComponent("NotFoundComponent")
 end
-pages -.-o MiscellaneousModule(MiscellaneousModule)
-pages --o NotFoundComponent(NotFoundComponent)
+pages -.-o MiscellaneousModule("MiscellaneousModule")
+pages --o NotFoundComponent("NotFoundComponent")
 end
-Root -.-o PagesModule(PagesModule)
-Root --o NbAuthComponent(NbAuthComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbRegisterComponent(NbRegisterComponent)
-Root --o NbLogoutComponent(NbLogoutComponent)
-Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-Root --o NbResetPasswordComponent(NbResetPasswordComponent)
-DashboardComponent --- NbThemeService{{NbThemeService}}
-DashboardComponent --- SolarData{{SolarData}}
-NotFoundComponent --- NbMenuService{{NbMenuService}}"
+Root -.-o PagesModule("PagesModule")
+Root --o NbAuthComponent("NbAuthComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbRegisterComponent("NbRegisterComponent")
+Root --o NbLogoutComponent("NbLogoutComponent")
+Root --o NbRequestPasswordComponent("NbRequestPasswordComponent")
+Root --o NbResetPasswordComponent("NbResetPasswordComponent")
+DashboardComponent --- NbThemeService{{"NbThemeService"}}
+DashboardComponent --- SolarData{{"SolarData"}}
+NotFoundComponent --- NbMenuService{{"NbMenuService"}}"
 `;
 
 exports[`generateDeepNestedRoutes should resolve template components from routes 1`] = `
 "flowchart LR
 subgraph PagesModule
 direction LR
-pages --o PagesComponent(PagesComponent)
-pages --o ECommerceComponent(ECommerceComponent)
-pages --o DashboardComponent(DashboardComponent)
+pages --o PagesComponent("PagesComponent")
+pages --o ECommerceComponent("ECommerceComponent")
+pages --o DashboardComponent("DashboardComponent")
 subgraph LayoutModule
 direction LR
-layout --o LayoutComponent(LayoutComponent)
-layout --o StepperComponent(StepperComponent)
-layout --o ListComponent(ListComponent)
-layout --o InfiniteListComponent(InfiniteListComponent)
-layout --o AccordionComponent(AccordionComponent)
-layout --o TabsComponent(TabsComponent)
-layout --o Tab1Component(Tab1Component)
-layout --o Tab2Component(Tab2Component)
+layout --o LayoutComponent("LayoutComponent")
+layout --o StepperComponent("StepperComponent")
+layout --o ListComponent("ListComponent")
+layout --o InfiniteListComponent("InfiniteListComponent")
+layout --o AccordionComponent("AccordionComponent")
+layout --o TabsComponent("TabsComponent")
+layout --o Tab1Component("Tab1Component")
+layout --o Tab2Component("Tab2Component")
 end
-pages -.-o LayoutModule(LayoutModule)
+pages -.-o LayoutModule("LayoutModule")
 subgraph FormsModule
 direction LR
-forms --o FormsComponent(FormsComponent)
-forms --o FormInputsComponent(FormInputsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o FormLayoutsComponent(FormLayoutsComponent)
-forms --o ButtonsComponent(ButtonsComponent)
-forms --o DatepickerComponent(DatepickerComponent)
+forms --o FormsComponent("FormsComponent")
+forms --o FormInputsComponent("FormInputsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o FormLayoutsComponent("FormLayoutsComponent")
+forms --o ButtonsComponent("ButtonsComponent")
+forms --o DatepickerComponent("DatepickerComponent")
 end
-pages -.-o FormsModule(FormsModule)
+pages -.-o FormsModule("FormsModule")
 subgraph UiFeaturesModule
 direction LR
-ui-features --o UiFeaturesComponent(UiFeaturesComponent)
-ui-features --o GridComponent(GridComponent)
-ui-features --o IconsComponent(IconsComponent)
-ui-features --o TypographyComponent(TypographyComponent)
-ui-features --o SearchComponent(SearchComponent)
+ui_features --o UiFeaturesComponent("UiFeaturesComponent")
+ui_features --o GridComponent("GridComponent")
+ui_features --o IconsComponent("IconsComponent")
+ui_features --o TypographyComponent("TypographyComponent")
+ui_features --o SearchComponent("SearchComponent")
 end
-pages -.-o UiFeaturesModule(UiFeaturesModule)
+pages -.-o UiFeaturesModule("UiFeaturesModule")
 subgraph ModalOverlaysModule
 direction LR
-modal-overlays --o ModalOverlaysComponent(ModalOverlaysComponent)
-modal-overlays --o DialogComponent(DialogComponent)
-modal-overlays --o WindowComponent(WindowComponent)
-modal-overlays --o PopoversComponent(PopoversComponent)
-modal-overlays --o TooltipComponent(TooltipComponent)
-modal-overlays --o ToastrComponent(ToastrComponent)
+modal_overlays --o ModalOverlaysComponent("ModalOverlaysComponent")
+modal_overlays --o DialogComponent("DialogComponent")
+modal_overlays --o WindowComponent("WindowComponent")
+modal_overlays --o PopoversComponent("PopoversComponent")
+modal_overlays --o TooltipComponent("TooltipComponent")
+modal_overlays --o ToastrComponent("ToastrComponent")
 end
-pages -.-o ModalOverlaysModule(ModalOverlaysModule)
+pages -.-o ModalOverlaysModule("ModalOverlaysModule")
 subgraph ExtraComponentsModule
 direction LR
-extra-components --o ExtraComponentsComponent(ExtraComponentsComponent)
-extra-components --o CalendarComponent(CalendarComponent)
-extra-components --o ProgressBarComponent(ProgressBarComponent)
-extra-components --o SpinnerComponent(SpinnerComponent)
-extra-components --o AlertComponent(AlertComponent)
-extra-components --o CalendarKitFullCalendarShowcaseComponent(CalendarKitFullCalendarShowcaseComponent)
-extra-components --o ChatComponent(ChatComponent)
+extra_components --o ExtraComponentsComponent("ExtraComponentsComponent")
+extra_components --o CalendarComponent("CalendarComponent")
+extra_components --o ProgressBarComponent("ProgressBarComponent")
+extra_components --o SpinnerComponent("SpinnerComponent")
+extra_components --o AlertComponent("AlertComponent")
+extra_components --o CalendarKitFullCalendarShowcaseComponent("CalendarKitFullCalendarShowcaseComponent")
+extra_components --o ChatComponent("ChatComponent")
 end
-pages -.-o ExtraComponentsModule(ExtraComponentsModule)
+pages -.-o ExtraComponentsModule("ExtraComponentsModule")
 subgraph MapsModule
 direction LR
-maps --o MapsComponent(MapsComponent)
-maps --o GmapsComponent(GmapsComponent)
-maps --o LeafletComponent(LeafletComponent)
-maps --o BubbleMapComponent(BubbleMapComponent)
-maps --o SearchMapComponent(SearchMapComponent)
+maps --o MapsComponent("MapsComponent")
+maps --o GmapsComponent("GmapsComponent")
+maps --o LeafletComponent("LeafletComponent")
+maps --o BubbleMapComponent("BubbleMapComponent")
+maps --o SearchMapComponent("SearchMapComponent")
 end
-pages -.-o MapsModule(MapsModule)
+pages -.-o MapsModule("MapsModule")
 subgraph ChartsModule
 direction LR
-charts --o ChartsComponent(ChartsComponent)
-charts --o EchartsComponent(EchartsComponent)
-charts --o D3Component(D3Component)
-charts --o ChartjsComponent(ChartjsComponent)
+charts --o ChartsComponent("ChartsComponent")
+charts --o EchartsComponent("EchartsComponent")
+charts --o D3Component("D3Component")
+charts --o ChartjsComponent("ChartjsComponent")
 end
-pages -.-o ChartsModule(ChartsModule)
+pages -.-o ChartsModule("ChartsModule")
 subgraph EditorsModule
 direction LR
-editors --o EditorsComponent(EditorsComponent)
-editors --o TinyMCEComponent(TinyMCEComponent)
-editors --o CKEditorComponent(CKEditorComponent)
+editors --o EditorsComponent("EditorsComponent")
+editors --o TinyMCEComponent("TinyMCEComponent")
+editors --o CKEditorComponent("CKEditorComponent")
 end
-pages -.-o EditorsModule(EditorsModule)
+pages -.-o EditorsModule("EditorsModule")
 subgraph TablesModule
 direction LR
-tables --o TablesComponent(TablesComponent)
-tables --o SmartTableComponent(SmartTableComponent)
-tables --o TreeGridComponent(TreeGridComponent)
+tables --o TablesComponent("TablesComponent")
+tables --o SmartTableComponent("SmartTableComponent")
+tables --o TreeGridComponent("TreeGridComponent")
 end
-pages -.-o TablesModule(TablesModule)
+pages -.-o TablesModule("TablesModule")
 subgraph MiscellaneousModule
 direction LR
-miscellaneous --o MiscellaneousComponent(MiscellaneousComponent)
-miscellaneous --o NotFoundComponent(NotFoundComponent)
+miscellaneous --o MiscellaneousComponent("MiscellaneousComponent")
+miscellaneous --o NotFoundComponent("NotFoundComponent")
 end
-pages -.-o MiscellaneousModule(MiscellaneousModule)
-pages --o NotFoundComponent(NotFoundComponent)
+pages -.-o MiscellaneousModule("MiscellaneousModule")
+pages --o NotFoundComponent("NotFoundComponent")
 end
-Root -.-o PagesModule(PagesModule)
-Root --o NbAuthComponent(NbAuthComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbLoginComponent(NbLoginComponent)
-Root --o NbRegisterComponent(NbRegisterComponent)
-Root --o NbLogoutComponent(NbLogoutComponent)
-Root --o NbRequestPasswordComponent(NbRequestPasswordComponent)
-Root --o NbResetPasswordComponent(NbResetPasswordComponent)
-DashboardComponent --- NbThemeService{{NbThemeService}}
-DashboardComponent --- SolarData{{SolarData}}
-NotFoundComponent --- NbMenuService{{NbMenuService}}"
+Root -.-o PagesModule("PagesModule")
+Root --o NbAuthComponent("NbAuthComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbLoginComponent("NbLoginComponent")
+Root --o NbRegisterComponent("NbRegisterComponent")
+Root --o NbLogoutComponent("NbLogoutComponent")
+Root --o NbRequestPasswordComponent("NbRequestPasswordComponent")
+Root --o NbResetPasswordComponent("NbResetPasswordComponent")
+DashboardComponent --- NbThemeService{{"NbThemeService"}}
+DashboardComponent --- SolarData{{"SolarData"}}
+NotFoundComponent --- NbMenuService{{"NbMenuService"}}"
 `;
 
 exports[`generateHostDirectives should resolve host directives from components 1`] = `
 "flowchart LR
-Root --o HostComponent(HostComponent)
-HostComponent ---OtherComponent([OtherComponent])
-HostComponent -.-> MyDirective{{MyDirective}}"
+Root --o HostComponent("HostComponent")
+HostComponent ---OtherComponent(["OtherComponent"])
+HostComponent -.-> MyDirective{{"MyDirective"}}"
 `;
 
 exports[`generateLazyComponents should resolve components from routes 1`] = `
 "flowchart LR
-Root -.-o HomeComponent(HomeComponent)
-Root -.-o AuthComponent(AuthComponent)
-Root -.-o AuthComponent(AuthComponent)
-Root -.-o SettingsComponent(SettingsComponent)
-subgraph ./features/profile/profile.routes
+Root -.-o HomeComponent("HomeComponent")
+Root -.-o AuthComponent("AuthComponent")
+Root -.-o AuthComponent("AuthComponent")
+Root -.-o SettingsComponent("SettingsComponent")
+subgraph __features_profile_profile_routes
 direction LR
-profile --o ProfileComponent(ProfileComponent)
-profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
-profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
+profile --o ProfileComponent("ProfileComponent")
+profile -.-o ProfileArticlesComponent("ProfileArticlesComponent")
+profile -.-o ProfileFavoritesComponent("ProfileFavoritesComponent")
 end
-Root -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-Root -.-o EditorComponent(EditorComponent)
-Root -.-o EditorComponent(EditorComponent)
-Root -.-o ArticleComponent(ArticleComponent)
-HomeComponent --- TagsService{{TagsService}}
-HomeComponent --- UserService{{UserService}}
-UserService --- JwtService{{JwtService}}
-AuthComponent --- UserService{{UserService}}
-SettingsComponent --- UserService{{UserService}}
-ProfileComponent --- UserService{{UserService}}
-ProfileComponent --- ProfileService{{ProfileService}}
-ProfileArticlesComponent --- ProfileService{{ProfileService}}
-ProfileFavoritesComponent --- ProfileService{{ProfileService}}
-EditorComponent --- ArticlesService{{ArticlesService}}
-EditorComponent --- UserService{{UserService}}
-ArticleComponent --- ArticlesService{{ArticlesService}}
-ArticleComponent --- CommentsService{{CommentsService}}
-ArticleComponent --- UserService{{UserService}}"
+Root -.-o __features_profile_profile_routes("./features/profile/profile.routes")
+Root -.-o EditorComponent("EditorComponent")
+Root -.-o EditorComponent("EditorComponent")
+Root -.-o ArticleComponent("ArticleComponent")
+HomeComponent --- TagsService{{"TagsService"}}
+HomeComponent --- UserService{{"UserService"}}
+UserService --- JwtService{{"JwtService"}}
+AuthComponent --- UserService{{"UserService"}}
+SettingsComponent --- UserService{{"UserService"}}
+ProfileComponent --- UserService{{"UserService"}}
+ProfileComponent --- ProfileService{{"ProfileService"}}
+ProfileArticlesComponent --- ProfileService{{"ProfileService"}}
+ProfileFavoritesComponent --- ProfileService{{"ProfileService"}}
+EditorComponent --- ArticlesService{{"ArticlesService"}}
+EditorComponent --- UserService{{"UserService"}}
+ArticleComponent --- ArticlesService{{"ArticlesService"}}
+ArticleComponent --- CommentsService{{"CommentsService"}}
+ArticleComponent --- UserService{{"UserService"}}"
 `;
 
 exports[`generateLazyComponents should resolve satisfy components from routes 1`] = `
 "flowchart LR
-Root -.-o HomeComponent(HomeComponent)
-Root -.-o AuthComponent(AuthComponent)
-Root -.-o AuthComponent(AuthComponent)
-Root -.-o SettingsComponent(SettingsComponent)
-subgraph ./features/profile/profile.routes
+Root -.-o HomeComponent("HomeComponent")
+Root -.-o AuthComponent("AuthComponent")
+Root -.-o AuthComponent("AuthComponent")
+Root -.-o SettingsComponent("SettingsComponent")
+subgraph __features_profile_profile_routes
 direction LR
-profile --o ProfileComponent(ProfileComponent)
-profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
-profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
+profile --o ProfileComponent("ProfileComponent")
+profile -.-o ProfileArticlesComponent("ProfileArticlesComponent")
+profile -.-o ProfileFavoritesComponent("ProfileFavoritesComponent")
 end
-Root -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-Root -.-o EditorComponent(EditorComponent)
-Root -.-o EditorComponent(EditorComponent)
-Root -.-o ArticleComponent(ArticleComponent)"
+Root -.-o __features_profile_profile_routes("./features/profile/profile.routes")
+Root -.-o EditorComponent("EditorComponent")
+Root -.-o EditorComponent("EditorComponent")
+Root -.-o ArticleComponent("ArticleComponent")"
 `;
 
 exports[`generateLazyComponents should resolve template components from routes 1`] = `
 "flowchart LR
-Root -.-o HomeComponent(HomeComponent)
-HomeComponent ---ArticleListComponent([ArticleListComponent])
-HomeComponent ---RxLet([RxLet])
-HomeComponent ---IfAuthenticatedDirective([IfAuthenticatedDirective])
-Root -.-o AuthComponent(AuthComponent)
-AuthComponent ---ListErrorsComponent([ListErrorsComponent])
-Root -.-o AuthComponent(AuthComponent)
-AuthComponent ---ListErrorsComponent([ListErrorsComponent])
-Root -.-o SettingsComponent(SettingsComponent)
-SettingsComponent ---ListErrorsComponent([ListErrorsComponent])
-subgraph ./features/profile/profile.routes
+Root -.-o HomeComponent("HomeComponent")
+HomeComponent ---ArticleListComponent(["ArticleListComponent"])
+HomeComponent ---RxLet(["RxLet"])
+HomeComponent ---IfAuthenticatedDirective(["IfAuthenticatedDirective"])
+Root -.-o AuthComponent("AuthComponent")
+AuthComponent ---ListErrorsComponent(["ListErrorsComponent"])
+Root -.-o AuthComponent("AuthComponent")
+AuthComponent ---ListErrorsComponent(["ListErrorsComponent"])
+Root -.-o SettingsComponent("SettingsComponent")
+SettingsComponent ---ListErrorsComponent(["ListErrorsComponent"])
+subgraph __features_profile_profile_routes
 direction LR
-profile --o ProfileComponent(ProfileComponent)
-ProfileComponent ---FollowButtonComponent([FollowButtonComponent])
-ProfileComponent ---FollowButtonComponent([FollowButtonComponent])
-profile -.-o ProfileArticlesComponent(ProfileArticlesComponent)
-ProfileArticlesComponent ---ArticleListComponent([ArticleListComponent])
-profile -.-o ProfileFavoritesComponent(ProfileFavoritesComponent)
-ProfileFavoritesComponent ---ArticleListComponent([ArticleListComponent])
+profile --o ProfileComponent("ProfileComponent")
+ProfileComponent ---FollowButtonComponent(["FollowButtonComponent"])
+ProfileComponent ---FollowButtonComponent(["FollowButtonComponent"])
+profile -.-o ProfileArticlesComponent("ProfileArticlesComponent")
+ProfileArticlesComponent ---ArticleListComponent(["ArticleListComponent"])
+profile -.-o ProfileFavoritesComponent("ProfileFavoritesComponent")
+ProfileFavoritesComponent ---ArticleListComponent(["ArticleListComponent"])
 end
-Root -.-o ./features/profile/profile.routes(./features/profile/profile.routes)
-Root -.-o EditorComponent(EditorComponent)
-EditorComponent ---ListErrorsComponent([ListErrorsComponent])
-Root -.-o EditorComponent(EditorComponent)
-EditorComponent ---ListErrorsComponent([ListErrorsComponent])
-Root -.-o ArticleComponent(ArticleComponent)
-ArticleComponent ---ArticleMetaComponent([ArticleMetaComponent])
-ArticleComponent ---FollowButtonComponent([FollowButtonComponent])
-ArticleComponent ---FavoriteButtonComponent([FavoriteButtonComponent])
-ArticleComponent ---MarkdownPipe([MarkdownPipe])
-ArticleComponent ---ListErrorsComponent([ListErrorsComponent])
-ArticleComponent ---ArticleCommentComponent([ArticleCommentComponent])
-ArticleComponent ---IfAuthenticatedDirective([IfAuthenticatedDirective])
-HomeComponent --- TagsService{{TagsService}}
-HomeComponent --- UserService{{UserService}}
-UserService --- JwtService{{JwtService}}
-AuthComponent --- UserService{{UserService}}
-SettingsComponent --- UserService{{UserService}}
-ProfileComponent --- UserService{{UserService}}
-ProfileComponent --- ProfileService{{ProfileService}}
-ProfileArticlesComponent --- ProfileService{{ProfileService}}
-ProfileFavoritesComponent --- ProfileService{{ProfileService}}
-EditorComponent --- ArticlesService{{ArticlesService}}
-EditorComponent --- UserService{{UserService}}
-ArticleComponent --- ArticlesService{{ArticlesService}}
-ArticleComponent --- CommentsService{{CommentsService}}
-ArticleComponent --- UserService{{UserService}}"
+Root -.-o __features_profile_profile_routes("./features/profile/profile.routes")
+Root -.-o EditorComponent("EditorComponent")
+EditorComponent ---ListErrorsComponent(["ListErrorsComponent"])
+Root -.-o EditorComponent("EditorComponent")
+EditorComponent ---ListErrorsComponent(["ListErrorsComponent"])
+Root -.-o ArticleComponent("ArticleComponent")
+ArticleComponent ---ArticleMetaComponent(["ArticleMetaComponent"])
+ArticleComponent ---FollowButtonComponent(["FollowButtonComponent"])
+ArticleComponent ---FavoriteButtonComponent(["FavoriteButtonComponent"])
+ArticleComponent ---MarkdownPipe(["MarkdownPipe"])
+ArticleComponent ---ListErrorsComponent(["ListErrorsComponent"])
+ArticleComponent ---ArticleCommentComponent(["ArticleCommentComponent"])
+ArticleComponent ---IfAuthenticatedDirective(["IfAuthenticatedDirective"])
+HomeComponent --- TagsService{{"TagsService"}}
+HomeComponent --- UserService{{"UserService"}}
+UserService --- JwtService{{"JwtService"}}
+AuthComponent --- UserService{{"UserService"}}
+SettingsComponent --- UserService{{"UserService"}}
+ProfileComponent --- UserService{{"UserService"}}
+ProfileComponent --- ProfileService{{"ProfileService"}}
+ProfileArticlesComponent --- ProfileService{{"ProfileService"}}
+ProfileFavoritesComponent --- ProfileService{{"ProfileService"}}
+EditorComponent --- ArticlesService{{"ArticlesService"}}
+EditorComponent --- UserService{{"UserService"}}
+ArticleComponent --- ArticlesService{{"ArticlesService"}}
+ArticleComponent --- CommentsService{{"CommentsService"}}
+ArticleComponent --- UserService{{"UserService"}}"
 `;
 
 exports[`generateLazyComponents should resolve template components inspired from real routes 1`] = `
 "flowchart LR
-Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
-Root -.-o ./features/references/api-reference-list/api-reference-list.component(./features/references/api-reference-list/api-reference-list.component)
-Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
-Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
-Root -.-o ./features/tutorial/tutorial.component(./features/tutorial/tutorial.component)
-Root -.-o ./features/docs/docs.component(./features/docs/docs.component)
-Root -.-o ./features/home/home.component(./features/home/home.component)
-Root -.-o ./features/playground/playground.component(./features/playground/playground.component)
-Root -.-o ./features/docs/docs.component(./features/docs/docs.component)"
+Root -.-o __features_docs_docs_component("./features/docs/docs.component")
+Root -.-o __features_references_api_reference_list_api_reference_list_component("./features/references/api-reference-list/api-reference-list.component")
+Root -.-o __features_docs_docs_component("./features/docs/docs.component")
+Root -.-o __features_docs_docs_component("./features/docs/docs.component")
+Root -.-o __features_tutorial_tutorial_component("./features/tutorial/tutorial.component")
+Root -.-o __features_docs_docs_component("./features/docs/docs.component")
+Root -.-o __features_home_home_component("./features/home/home.component")
+Root -.-o __features_playground_playground_component("./features/playground/playground.component")
+Root -.-o __features_docs_docs_component("./features/docs/docs.component")"
 `;
