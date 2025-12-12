@@ -26,6 +26,14 @@ export const main = (args) => {
     return generateMermaid(elements);
 };
 
+const sanitizeId = (str) => {
+    return str.replace(/[^a-zA-Z0-9_]/g, '_');
+};
+
+const formatLabel = (str) => {
+    return `"${str.replace(/"/g, '#quot;')}"`;
+};
+
 export const generateMermaid = (routes) => {
     const lines = routes.map(route => {
         const mermaidLines = [];
@@ -37,33 +45,37 @@ export const generateMermaid = (routes) => {
 
         // Remove '@' prefix (if present) for better display
         const formattedParent = parent?.startsWith('@') ? parent.slice(1) : parent;
+        const sanitizedParent = sanitizeId(formattedParent || 'empty-route');
 
         if (subgraph === 'start') {
-            mermaidLines.push(`subgraph ${formattedParent || 'empty-route'}`);
+            mermaidLines.push(`subgraph ${sanitizedParent}`);
             mermaidLines.push('direction LR'); // Set subgraph direction to left-to-right
         } else {
-            const parentNode = formattedParent || 'empty-route'; // Default to 'empty-route' if no parent
+            const parentNode = sanitizedParent;
             const formattedComponentName = componentName.startsWith('@') ? componentName.slice(1) : componentName;
+            const sanitizedComponentName = sanitizeId(formattedComponentName);
+            const label = formatLabel(componentName);
+
             if (lazy) {
                 // Lazy-loaded component (dotted line with open arrowhead)
-                mermaidLines.push(`${parentNode} -.-o ${formattedComponentName}(${componentName})`); 
+                mermaidLines.push(`${parentNode} -.-o ${sanitizedComponentName}(${label})`);
             } else {
                 switch (type) {
                     case 'service':
                         // Service (solid line with double brackets)
-                        mermaidLines.push(`${parentNode} --- ${formattedComponentName}{{${componentName}}}`);
+                        mermaidLines.push(`${parentNode} --- ${sanitizedComponentName}{{${label}}}`);
                         break;
                     case 'import':
                         // Import (solid line with square brackets)
-                        mermaidLines.push(`${parentNode} ---${formattedComponentName}([${componentName}])`);
+                        mermaidLines.push(`${parentNode} ---${sanitizedComponentName}([${label}])`);
                         break;
                     case 'hostDirective':
                         // Host Directive (dotted line with normal arrow and curly braces)
-                        mermaidLines.push(`${parentNode} -.-> ${formattedComponentName}{{${componentName}}}`);
+                        mermaidLines.push(`${parentNode} -.-> ${sanitizedComponentName}{{${label}}}`);
                         break;
                     default:
                         // Standard component (solid line with open arrowhead)
-                        mermaidLines.push(`${parentNode} --o ${formattedComponentName}(${componentName})`);
+                        mermaidLines.push(`${parentNode} --o ${sanitizedComponentName}(${label})`);
                 }
             }
         }

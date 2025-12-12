@@ -73,7 +73,7 @@ describe('generateMermaid', () => {
         ];
         const expectedOutput = `
 flowchart LR
-AppComponent --o HomeComponent(HomeComponent)
+AppComponent --o HomeComponent("HomeComponent")
         `.trim();
         expect(generateMermaid(routes)).toEqual(expectedOutput);
     });
