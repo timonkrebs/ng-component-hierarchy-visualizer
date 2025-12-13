@@ -33,6 +33,6 @@
   },
   "homepage": "https://github.com/timonkrebs/ng-component-hierarchy-visualizer#readme",
   "dependencies": {
-    "@typescript-eslint/typescript-estree": "^8.0.0"
+    "@typescript-eslint/typescript-estree": "^8.49.0"
   }
 }
