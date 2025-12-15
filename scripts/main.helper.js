@@ -31,7 +31,7 @@ const sanitizeId = (str) => {
 };
 
 const formatLabel = (str) => {
-    return `"${str.replace(/"/g, '#quot;')}"`;
+    return `"${str.replace(/"/g, '#quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}"`;
 };
 
 export const generateMermaid = (routes) => {
