@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'path';
 import { main } from './main.helper.js'; // Adjust the path as needed
+import { stripJsonComments } from './json.helper.js';
 
 const parseArguments = (argv) => {
     const args = {
@@ -26,15 +27,11 @@ const parseArguments = (argv) => {
 
     try {
         if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'))) {
-            args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8')
-            .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')) // remove multiline comments
-            .replace(/\/\/.*/g, '') // remove singleline comments
-            .compilerOptions?.paths;
+            args.pathAlias = JSON.parse(stripJsonComments(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.json'), 'utf-8')))
+                .compilerOptions?.paths;
         } else if (fs.existsSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'))) {
-            args.pathAlias = JSON.parse(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'), 'utf-8')
-            .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')) // remove multiline comments
-            .replace(/\/\/.*/g, '') // remove singleline comments
-            .compilerOptions?.paths;
+            args.pathAlias = JSON.parse(stripJsonComments(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), 'tsconfig.base.json'), 'utf-8')))
+                .compilerOptions?.paths;
         }
     } catch { }
 
