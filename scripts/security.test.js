@@ -1,6 +1,8 @@
 
 import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
+import { resolveComponents } from './component.helper.js';
+import { jest } from '@jest/globals';
 
 describe('Security Checks', () => {
     describe('Mermaid XSS Prevention', () => {
@@ -71,6 +73,68 @@ describe('Security Checks', () => {
                 "text": "This is \\"quoted\\" text // not a comment"
             }`;
             expect(JSON.parse(stripJsonComments(input))).toEqual({ text: 'This is "quoted" text // not a comment' });
+        });
+    });
+
+    describe('AST Parsing vs Regex (Code Injection Prevention)', () => {
+        let consoleSpy;
+
+        beforeEach(() => {
+            consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            consoleSpy.mockRestore();
+        });
+
+        it('should resolve component path from real import', () => {
+             const routes = [{
+                component: 'RealComponent',
+                parent: 'Root',
+                lazy: false,
+                type: 'component',
+                path: 'real'
+            }];
+            const fileContent = `
+                import { RealComponent } from './real';
+            `;
+            const resolved = resolveComponents(routes, fileContent);
+            expect(resolved).toHaveLength(1);
+            expect(resolved[0].loadComponent).toContain('real');
+        });
+
+        it('should NOT resolve component path from string (false positive)', () => {
+            const routes = [{
+                component: 'FakeComponent',
+                parent: 'Root',
+                lazy: false,
+                type: 'component',
+                path: 'fake'
+            }];
+            // This mimics an import inside a string
+            const fileContent = `
+                const s = "import { FakeComponent } from './fake'";
+            `;
+            const resolved = resolveComponents(routes, fileContent);
+
+            // With vulnerable regex, this WOULD resolve.
+            // We want it to NOT resolve.
+            expect(resolved).toHaveLength(0);
+        });
+
+         it('should NOT resolve component path from comment (false positive)', () => {
+            const routes = [{
+                component: 'CommentedComponent',
+                parent: 'Root',
+                lazy: false,
+                type: 'component',
+                path: 'comment'
+            }];
+            const fileContent = `
+                // import { CommentedComponent } from './comment';
+            `;
+            const resolved = resolveComponents(routes, fileContent);
+            expect(resolved).toHaveLength(0);
         });
     });
 });

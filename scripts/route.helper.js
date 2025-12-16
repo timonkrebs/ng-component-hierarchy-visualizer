@@ -2,6 +2,24 @@ import { parse } from '@typescript-eslint/typescript-estree';
 
 const ROOT_COMPONENT = 'Root';
 
+export const findImportPath = (fileContent, componentName) => {
+    try {
+        const ast = parse(fileContent, { range: false });
+        for (const node of ast.body) {
+            if (node.type === 'ImportDeclaration') {
+                const specifier = node.specifiers.find(s => s.local.name === componentName);
+                if (specifier) {
+                    return node.source.value;
+                }
+            }
+        }
+    } catch (e) {
+        // Fallback or ignore parse errors (e.g. if fileContent is partial or invalid)
+        // console.warn('Error parsing file content for imports:', e.message);
+    }
+    return null;
+}
+
 const extractRouteRanges = (routesFileContent) => {
     const ast = parse(routesFileContent, { range: true });
     const ranges = [];
