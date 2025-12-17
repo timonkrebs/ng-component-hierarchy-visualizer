@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
-import { extractRoutesFromTS } from './route.helper.js';
+import { extractRoutesFromTS, findImportPath } from './route.helper.js';
 
 let pathAliases = new Map();
 let aliasKeys = [];
@@ -153,11 +153,9 @@ const handleLoadChildren = (route) => {
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
-    const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${route.component}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
-    const match = routesFileContent.match(regex);
-    if (match) {
+    const modulePath = findImportPath(routesFileContent, route.component);
+    if (modulePath) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
-        const modulePath = match[2];
 
         const loadComponentPath = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
 
