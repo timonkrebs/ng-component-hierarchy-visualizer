@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
+import { findImportPath } from './route.helper.js';
 
 let pathAliases = new Map();
 let aliasKeys = [];
@@ -66,13 +67,12 @@ const loadAllConstructorInjectedServices = (componentCode, parent) => {
 };
 
 const createService = (serviceName, componentCode, parent) => {
-    const importRegex = new RegExp(`import\\s*{\\s*([^}]*\\b${serviceName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
-    const match = componentCode.match(importRegex);
-    if (!match || !match[2] || match[2].startsWith('@angular')) return null;
+    const modulePath = findImportPath(componentCode, serviceName);
+    if (!modulePath || modulePath.startsWith('@angular')) return null;
 
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
-    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(match[2])));
+    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(modulePath)));
 
     return { componentName: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentName, lazy: false, type: 'service' };
 };
