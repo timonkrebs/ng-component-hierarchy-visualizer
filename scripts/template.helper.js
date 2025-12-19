@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
-import { extractRoutesFromTS } from './route.helper.js';
+import { extractRoutesFromTS, findImportPath } from './route.helper.js';
 import { handleRoutePaths, resolveComponents } from './component.helper.js';
 
 export const addTemplateElements = (elements, withNestedDependencies, recursionDepth = 0) => {
@@ -105,13 +105,12 @@ const handleRoutes = (importNodes, fileContent, withNestedDependencies, p, compo
 }
 
 const handleComponent = (componentName, routesFileContent, parent, relativePath = null) => {
-    const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${componentName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
-    const match = routesFileContent.match(regex);
-    if (match && match[2] && match[2].startsWith('@angular')) {
+    const modulePath = findImportPath(routesFileContent, componentName);
+
+    if (modulePath && modulePath.startsWith('@angular')) {
         return null;
-    } else if (match && match[2]) {
+    } else if (modulePath) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
-        const modulePath = match[2];
         const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
         return { loadComponent, componentName, parent, lazy: false, type: 'import' };
     } else {
