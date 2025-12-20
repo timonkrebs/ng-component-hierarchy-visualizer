@@ -10,3 +10,8 @@
 **Vulnerability:** In `scripts/component.helper.js`, a regex was dynamically constructed using the component name: `new RegExp("import...${route.component}...from")`. This allowed potential regex injection if the component name contained special characters. Furthermore, using regex to parse imports led to false positives where imports inside strings or comments were incorrectly identified as valid dependencies, potentially leading to incorrect diagrams or information leakage.
 **Learning:** Regex-based parsing of source code is fragile and error-prone. It cannot easily distinguish between code, strings, and comments. AST parsing is robust against these issues.
 **Prevention:** Replaced regex-based import extraction with AST parsing using `@typescript-eslint/typescript-estree`. Added a helper `findImportPath` in `scripts/route.helper.js` to safely locate imports.
+
+## 2025-02-18 - Persistent Regex Injection in Template Helper
+**Vulnerability:** The previous fix for Regex Injection in component resolution was incomplete. `scripts/template.helper.js` still contained a dynamic `new RegExp` construction using `componentName` to find imports (`new RegExp("import...${componentName}...")`). This posed the same ReDoS and injection risks as the previously fixed instance.
+**Learning:** When fixing a vulnerability pattern (like dynamic regex construction), searching the entire codebase for similar patterns is crucial to ensure complete remediation. AST parsing is consistently superior to regex for code analysis.
+**Prevention:** Replaced the remaining dynamic regex in `scripts/template.helper.js` with the `findImportPath` AST-based helper from `scripts/route.helper.js`.
