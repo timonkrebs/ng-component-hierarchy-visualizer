@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
-import { extractRoutesFromTS } from './route.helper.js';
+import { extractRoutesFromTS, findImportPath } from './route.helper.js';
 import { handleRoutePaths, resolveComponents } from './component.helper.js';
 
 export const addTemplateElements = (elements, withNestedDependencies, recursionDepth = 0) => {
@@ -49,8 +49,8 @@ const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
         return [c, ...components];
     }
 
-    const importedComponents = extractDependencies(importNodes, 'import', fileContent, c.componentName, path.relative(cwd, p));
-    const hostDirectives = extractDependencies(hostDirectiveNodes, 'hostDirective', fileContent, c.componentName, path.relative(cwd, p));
+    const importedComponents = extractDependencies(importNodes, 'import', ast, c.componentName, path.relative(cwd, p));
+    const hostDirectives = extractDependencies(hostDirectiveNodes, 'hostDirective', ast, c.componentName, path.relative(cwd, p));
 
     components.push(...importedComponents, ...hostDirectives);
 
@@ -58,7 +58,7 @@ const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
     return [c, ...x];
 }
 
-const extractDependencies = (nodes, type, fileContent, parentComponent, relativePath) => {
+const extractDependencies = (nodes, type, ast, parentComponent, relativePath) => {
     if (!nodes || nodes.length === 0) {
         return [];
     }
@@ -79,7 +79,7 @@ const extractDependencies = (nodes, type, fileContent, parentComponent, relative
     }).filter(Boolean);
 
     return dependencyNames.map(componentName => {
-        const comp = handleComponent(componentName, fileContent, parentComponent, relativePath);
+        const comp = handleComponent(componentName, ast, parentComponent, relativePath);
         if (comp) {
             comp.type = type;
             return comp;
@@ -104,14 +104,12 @@ const handleRoutes = (importNodes, fileContent, withNestedDependencies, p, compo
     return [];
 }
 
-const handleComponent = (componentName, routesFileContent, parent, relativePath = null) => {
-    const regex = new RegExp(`import\\s*{\\s*([^}]*\\b${componentName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
-    const match = routesFileContent.match(regex);
-    if (match && match[2] && match[2].startsWith('@angular')) {
+const handleComponent = (componentName, ast, parent, relativePath = null) => {
+    const modulePath = findImportPath(ast, componentName);
+    if (modulePath && modulePath.startsWith('@angular')) {
         return null;
-    } else if (match && match[2]) {
+    } else if (modulePath) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
-        const modulePath = match[2];
         const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
         return { loadComponent, componentName, parent, lazy: false, type: 'import' };
     } else {

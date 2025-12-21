@@ -2,9 +2,9 @@ import { parse } from '@typescript-eslint/typescript-estree';
 
 const ROOT_COMPONENT = 'Root';
 
-export const findImportPath = (fileContent, componentName) => {
+export const findImportPath = (source, componentName) => {
     try {
-        const ast = parse(fileContent, { range: false });
+        const ast = typeof source === 'string' ? parse(source, { range: false }) : source;
         for (const node of ast.body) {
             if (node.type === 'ImportDeclaration') {
                 const specifier = node.specifiers.find(s => s.local.name === componentName);
