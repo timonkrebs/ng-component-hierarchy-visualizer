@@ -136,5 +136,21 @@ describe('Security Checks', () => {
             const resolved = resolveComponents(routes, fileContent);
             expect(resolved).toHaveLength(0);
         });
+
+        it('should resolve component path from import with double quotes', () => {
+             const routes = [{
+                component: 'DoubleQuoteComponent',
+                parent: 'Root',
+                lazy: false,
+                type: 'component',
+                path: 'double'
+            }];
+            const fileContent = `
+                import { DoubleQuoteComponent } from "./double";
+            `;
+            const resolved = resolveComponents(routes, fileContent);
+            expect(resolved).toHaveLength(1);
+            expect(resolved[0].loadComponent).toContain('double');
+        });
     });
 });
