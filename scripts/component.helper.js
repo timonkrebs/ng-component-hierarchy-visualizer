@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'path';
-import { extractRoutesFromTS, findImportPath } from './route.helper.js';
+import { extractRoutesFromTS, findImportPath, findImports } from './route.helper.js';
 
 let pathAliases = new Map();
 let aliasKeys = [];
@@ -93,13 +93,10 @@ const handleLoadChildren = (route) => {
         ];
     } else {
         // Check if routes are configured directly (convention: .+\/.+routing.*|.+routes)
-        const imports = [...routesFileContent.matchAll(/(import|export)\s+\{?[^}]+\}?\s+from\s+'([^']+)'/g)];
-        const moduleImportMatch = imports.find(match => {
-            const path = match[2];
-            return path.match(/routing/) || path.match(/routes/);
-        });
+        const allImports = findImports(routesFileContent);
+        const moduleImportPath = allImports.find(path => path.includes('routing') || path.includes('routes'));
 
-        const originalModulePath = moduleImportMatch?.[2] ?? routesFileContent.match(/(import|export)\s+\{?[^}]+\}?\s+from\s+'([^']+)'/)[2];
+        const originalModulePath = moduleImportPath ?? allImports[0];
         const resolvedModulePath = replacePath(originalModulePath);
 
         const moduleFilePath = originalModulePath === resolvedModulePath

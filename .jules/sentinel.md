@@ -15,3 +15,8 @@
 **Vulnerability:** `scripts/template.helper.js` was using a dynamically constructed regex to find import paths for components. This was vulnerable to regex injection if component names contained special characters and also led to false positives where commented-out imports were incorrectly identified as valid dependencies.
 **Learning:** Reusing existing safe tools (like `findImportPath` which uses AST) is better than re-implementing logic with regex, especially for code parsing.
 **Prevention:** Updated `scripts/template.helper.js` to use `findImportPath` from `scripts/route.helper.js`, passing the AST directly to avoid re-parsing and ensure accurate import resolution.
+
+## 2025-02-17 - Incomplete Regex to AST Migration
+**Vulnerability:** `scripts/component.helper.js` still contained legacy regex-based import parsing in `handleLoadChildren`, which was vulnerable to false positives (matching imports in strings/comments) and potential regex injection/DoS. This persisted despite previous efforts to migrate to AST parsing.
+**Learning:** When refactoring for security (like moving from regex to AST), ensure all instances of the insecure pattern are replaced, not just the most obvious ones. Use tools like `grep` to find all occurrences.
+**Prevention:** Added `findImports` helper to `scripts/route.helper.js` to extract all imports using AST, and replaced the remaining regex implementation in `scripts/component.helper.js` with this helper.

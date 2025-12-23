@@ -2,6 +2,7 @@
 import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
 import { resolveComponents } from './component.helper.js';
+import { findImports } from './route.helper.js';
 import { jest } from '@jest/globals';
 
 describe('Security Checks', () => {
@@ -135,6 +136,22 @@ describe('Security Checks', () => {
             `;
             const resolved = resolveComponents(routes, fileContent);
             expect(resolved).toHaveLength(0);
+        });
+
+        it('findImports should correctly identify imports and ignore false positives', () => {
+            const fileContent = `
+                import { A } from './a';
+                export { B } from './b';
+                export * from './c';
+                const s = "import { D } from './d'";
+                // import { E } from './e';
+            `;
+            const imports = findImports(fileContent);
+            expect(imports).toContain('./a');
+            expect(imports).toContain('./b');
+            expect(imports).toContain('./c');
+            expect(imports).not.toContain('./d');
+            expect(imports).not.toContain('./e');
         });
     });
 });
