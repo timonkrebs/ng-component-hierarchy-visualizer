@@ -20,6 +20,28 @@ export const findImportPath = (source, componentName) => {
     return null;
 }
 
+export const getImportsAndExports = (source) => {
+    try {
+        const ast = typeof source === 'string' ? parse(source, { range: false }) : source;
+        const imports = [];
+        for (const node of ast.body) {
+            if (node.type === 'ImportDeclaration') {
+                if (node.source && node.source.value) {
+                    imports.push(node.source.value);
+                }
+            } else if (node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') {
+                if (node.source && node.source.value) {
+                    imports.push(node.source.value);
+                }
+            }
+        }
+        return imports;
+    } catch (e) {
+        // console.warn('Error parsing file content for imports:', e.message);
+        return [];
+    }
+};
+
 const extractRouteRanges = (routesFileContent) => {
     const ast = parse(routesFileContent, { range: true });
     const ranges = [];

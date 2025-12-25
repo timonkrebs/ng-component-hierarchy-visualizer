@@ -2,6 +2,7 @@
 import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
 import { resolveComponents } from './component.helper.js';
+import { getImportsAndExports } from './route.helper.js';
 import { jest } from '@jest/globals';
 
 describe('Security Checks', () => {
@@ -135,6 +136,35 @@ describe('Security Checks', () => {
             `;
             const resolved = resolveComponents(routes, fileContent);
             expect(resolved).toHaveLength(0);
+        });
+    });
+
+    describe('AST Import Extraction (Comment Injection Prevention)', () => {
+        it('should correctly extract imports from valid code', () => {
+            const source = `
+                import { A } from './a';
+                export { B } from './b';
+            `;
+            const imports = getImportsAndExports(source);
+            expect(imports).toContain('./a');
+            expect(imports).toContain('./b');
+        });
+
+        it('should NOT extract imports from comments', () => {
+            const source = `
+                // import { Secret } from '/etc/passwd';
+                /* import { Secret } from '/etc/shadow'; */
+            `;
+            const imports = getImportsAndExports(source);
+            expect(imports).toHaveLength(0);
+        });
+
+        it('should NOT extract imports from strings', () => {
+            const source = `
+                const x = "import { Secret } from '/etc/passwd'";
+            `;
+            const imports = getImportsAndExports(source);
+            expect(imports).toHaveLength(0);
         });
     });
 });
