@@ -15,3 +15,8 @@
 **Vulnerability:** `scripts/template.helper.js` was using a dynamically constructed regex to find import paths for components. This was vulnerable to regex injection if component names contained special characters and also led to false positives where commented-out imports were incorrectly identified as valid dependencies.
 **Learning:** Reusing existing safe tools (like `findImportPath` which uses AST) is better than re-implementing logic with regex, especially for code parsing.
 **Prevention:** Updated `scripts/template.helper.js` to use `findImportPath` from `scripts/route.helper.js`, passing the AST directly to avoid re-parsing and ensure accurate import resolution.
+
+## 2025-02-17 - Service Helper Regex Injection and False Positive Fix
+**Vulnerability:** `scripts/service.helper.js` utilized regex for identifying Angular services via `inject()` calls and constructor parameters. This approach was susceptible to false positives (matching strings/comments) and regex injection via dynamic regex construction using service names.
+**Learning:** Complex code analysis, especially for language constructs like dependency injection, is reliably handled only by AST parsing. Regex is insufficient for distinguishing code context from strings or comments.
+**Prevention:** Refactored `scripts/service.helper.js` to use AST parsing (`@typescript-eslint/typescript-estree`) for extracting injected services and constructor parameters. Leveraged `findImportPath` for safe import resolution.
