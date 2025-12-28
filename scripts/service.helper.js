@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import path from 'path';
+import { parse } from '@typescript-eslint/typescript-estree';
+import { findImportPath } from './route.helper.js';
 
 let pathAliases = new Map();
 let aliasKeys = [];
@@ -23,56 +25,46 @@ const replacePath = (basePath) => {
 };
 
 export const addServices = (components, recursionDepth = 0) => {
-    const services = components
-        .filter(c => !c.skipLoadingDependencies)
-        .flatMap(c => {
-            try {
-                return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth);
-            } catch {
-                return [];
-            }
-        });
+    const services = components.filter(c => !c.skipLoadingDependencies).flatMap(c => {
+        try {
+            return loadAllServices(fs.readFileSync(path.join(process.env.INIT_CWD ?? process.cwd(), c.loadComponent + '.ts'), 'utf-8'), c, recursionDepth);
+        } catch { return []; }
+    });
     return [...components, ...uniqueByProperty(services)];
 };
 
-const loadAllServices = (componentCode, parent, recursionDepth = 0) => {
-    const services = [
-        ...loadAllInjectedServices(componentCode, parent),
-        ...loadAllConstructorInjectedServices(componentCode, parent),
-    ];
-
-    if (recursionDepth > 100 || !services.length) {
-        return uniqueByProperty(services);
-    }
-
-    return addServices(uniqueByProperty(services), recursionDepth + 1);
+const loadAllServices = (code, parent, depth = 0) => {
+    let ast; try { ast = parse(code, { range: true }); } catch { return []; }
+    const services = extractServiceNames(ast).map(n => createService(n, ast, parent)).filter(Boolean);
+    return (depth > 100 || !services.length) ? uniqueByProperty(services) : addServices(uniqueByProperty(services), depth + 1);
 };
 
-const loadAllInjectedServices = (componentCode, parent) => {
-    const injectRegex = /(?<=inject\()\w+(?=\))/g;
-    const matches = componentCode.match(injectRegex);
-    if (!matches) return [];
-
-    return matches.map(s => createService(s, componentCode, parent)).filter(Boolean);
+const extractServiceNames = (ast) => {
+    const services = new Set();
+    const traverse = (node) => {
+        if (!node || typeof node !== 'object') return;
+        if (Array.isArray(node)) return node.forEach(traverse);
+        if (node.type === 'MethodDefinition' && node.kind === 'constructor') {
+            node.value.params.forEach(p => {
+                const type = (p.type === 'TSParameterProperty' ? p.parameter : p).typeAnnotation?.typeAnnotation?.typeName;
+                if (type?.type === 'Identifier') services.add(type.name);
+            });
+        } else if (node.type === 'CallExpression' && node.callee.name === 'inject' && node.arguments[0]?.type === 'Identifier') {
+            services.add(node.arguments[0].name);
+        }
+        Object.keys(node).forEach(key => key !== 'parent' && key !== 'loc' && key !== 'range' && traverse(node[key]));
+    };
+    traverse(ast);
+    return Array.from(services);
 };
 
-const loadAllConstructorInjectedServices = (componentCode, parent) => {
-    const constructorRegex = /constructor\s*\(\s*([^)]+)\)/;
-    const match = componentCode.match(constructorRegex);
-    if (!match) return [];
-
-    const serviceNames = [...match[1].matchAll(/:\s*([A-Za-z0-9_]+)/g)].map(m => m[1]);
-    return serviceNames.map(s => createService(s, componentCode, parent)).filter(Boolean);
-};
-
-const createService = (serviceName, componentCode, parent) => {
-    const importRegex = new RegExp(`import\\s*{\\s*([^}]*\\b${serviceName}\\b[^}]*)\\s*}\\s*from\\s*['"]([^'"]+)['"]`);
-    const match = componentCode.match(importRegex);
-    if (!match || !match[2] || match[2].startsWith('@angular')) return null;
+const createService = (serviceName, ast, parent) => {
+    const importPath = findImportPath(ast, serviceName);
+    if (!importPath || importPath.startsWith('@angular')) return null;
 
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
-    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(match[2])));
+    const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(importPath)));
 
     return { componentName: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentName, lazy: false, type: 'service' };
 };
