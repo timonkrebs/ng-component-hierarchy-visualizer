@@ -15,3 +15,8 @@
 **Vulnerability:** `scripts/template.helper.js` was using a dynamically constructed regex to find import paths for components. This was vulnerable to regex injection if component names contained special characters and also led to false positives where commented-out imports were incorrectly identified as valid dependencies.
 **Learning:** Reusing existing safe tools (like `findImportPath` which uses AST) is better than re-implementing logic with regex, especially for code parsing.
 **Prevention:** Updated `scripts/template.helper.js` to use `findImportPath` from `scripts/route.helper.js`, passing the AST directly to avoid re-parsing and ensure accurate import resolution.
+
+## 2025-02-17 - Service Helper Regex Injection Fix
+**Vulnerability:** `scripts/service.helper.js` relied on a dynamically constructed regex to identify service imports. This approach was susceptible to regex injection if service names included special characters and could incorrectly identify commented-out imports as valid dependencies.
+**Learning:** Consistent application of security patterns is crucial. Even if other parts of the system are secure (e.g., component helpers), ignoring similar patterns in other modules (like service helpers) leaves gaps.
+**Prevention:** Updated `scripts/service.helper.js` to use `findImportPath` from `scripts/route.helper.js`, leveraging the robust AST parsing already established in the project.
