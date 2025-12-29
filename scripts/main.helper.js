@@ -12,7 +12,13 @@ export const main = (args) => {
     }
 
     process.env.INIT_CWD = args.basePath;
-    const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
+
+    const resolvedPath = path.resolve(args.basePath, `./${args.routesFilePath}`);
+    if (!resolvedPath.startsWith(path.resolve(args.basePath))) {
+        throw new Error('Security Error: Path traversal detected. Access denied.');
+    }
+
+    const routesFileContent = fs.readFileSync(resolvedPath, 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const handeledRoutes = handleRoutePaths(routes);
     let elements = resolveComponents(handeledRoutes, routesFileContent);
