@@ -12,7 +12,16 @@ export const main = (args) => {
     }
 
     process.env.INIT_CWD = args.basePath;
-    const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
+
+    // Security check: Prevent path traversal
+    const resolvedBasePath = path.resolve(args.basePath);
+    const resolvedRoutesPath = path.resolve(resolvedBasePath, args.routesFilePath);
+
+    if (!resolvedRoutesPath.startsWith(resolvedBasePath + path.sep) && resolvedRoutesPath !== resolvedBasePath) {
+        throw new Error(`Invalid file path: ${args.routesFilePath}. Access denied.`);
+    }
+
+    const routesFileContent = fs.readFileSync(resolvedRoutesPath, 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const handeledRoutes = handleRoutePaths(routes);
     let elements = resolveComponents(handeledRoutes, routesFileContent);

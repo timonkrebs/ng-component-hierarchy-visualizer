@@ -15,3 +15,7 @@
 **Vulnerability:** `scripts/template.helper.js` was using a dynamically constructed regex to find import paths for components. This was vulnerable to regex injection if component names contained special characters and also led to false positives where commented-out imports were incorrectly identified as valid dependencies.
 **Learning:** Reusing existing safe tools (like `findImportPath` which uses AST) is better than re-implementing logic with regex, especially for code parsing.
 **Prevention:** Updated `scripts/template.helper.js` to use `findImportPath` from `scripts/route.helper.js`, passing the AST directly to avoid re-parsing and ensure accurate import resolution.
+## 2026-01-01 - Path Traversal in CLI Arguments
+**Vulnerability:** User-provided `routesFilePath` could be manipulated (e.g., `../../etc/passwd`) to access files outside the intended `basePath`.
+**Learning:** Even with `path.join`, relative paths can escape the root directory if not explicitly validated. Also, `startsWith` checks for paths are vulnerable to partial matching (e.g., `/dir/secret` matches prefix `/dir/sec`) if directory separators are not enforced.
+**Prevention:** Use `path.resolve` to canonicalize paths and verify that the resolved target path starts with the resolved base path plus the directory separator.
