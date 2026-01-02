@@ -15,3 +15,8 @@
 **Vulnerability:** `scripts/template.helper.js` was using a dynamically constructed regex to find import paths for components. This was vulnerable to regex injection if component names contained special characters and also led to false positives where commented-out imports were incorrectly identified as valid dependencies.
 **Learning:** Reusing existing safe tools (like `findImportPath` which uses AST) is better than re-implementing logic with regex, especially for code parsing.
 **Prevention:** Updated `scripts/template.helper.js` to use `findImportPath` from `scripts/route.helper.js`, passing the AST directly to avoid re-parsing and ensure accurate import resolution.
+
+## 2025-10-26 - Path Traversal in Main Helper
+**Vulnerability:** The application allowed reading files outside of the intended `basePath` if the user provided a `routesFilePath` containing `../`. This path traversal vulnerability could allow an attacker to read arbitrary files on the system if they could control the input arguments.
+**Learning:** Even when using `path.join`, user inputs containing `..` can escape the intended directory. Simply resolving the path is not enough; one must verify that the resolved path is still contained within the allowed base directory.
+**Prevention:** Implemented a check in `scripts/main.helper.js` that resolves both the `basePath` and the target `routesFilePath` to absolute paths. It then verifies that the target path starts with the base path (plus `path.sep` to avoid partial matches).
