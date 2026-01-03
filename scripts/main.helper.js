@@ -12,7 +12,15 @@ export const main = (args) => {
     }
 
     process.env.INIT_CWD = args.basePath;
-    const routesFileContent = fs.readFileSync(path.join(args.basePath, `./${args.routesFilePath}`), 'utf-8');
+    const resolvedBasePath = path.resolve(args.basePath);
+    const resolvedRoutesPath = path.resolve(resolvedBasePath, args.routesFilePath);
+
+    const relativePath = path.relative(resolvedBasePath, resolvedRoutesPath);
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        throw new Error(`Path traversal detected: ${args.routesFilePath} is outside base path ${args.basePath}`);
+    }
+
+    const routesFileContent = fs.readFileSync(resolvedRoutesPath, 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
     const handeledRoutes = handleRoutePaths(routes);
     let elements = resolveComponents(handeledRoutes, routesFileContent);
