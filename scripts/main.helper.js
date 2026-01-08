@@ -16,6 +16,10 @@ export const main = (args) => {
     const resolvedBasePath = path.resolve(args.basePath);
     const resolvedRoutesFilePath = path.resolve(resolvedBasePath, args.routesFilePath);
 
+    // Security: Prevent path traversal
+    // Ensure the target path is within the base path.
+    // We check for path + sep to prevent partial matches (e.g. /safe/app matches /safe/app_secret)
+    // We also allow if the path is exactly the base path (though usually it should be a file)
     if (!resolvedRoutesFilePath.startsWith(resolvedBasePath + path.sep) && resolvedRoutesFilePath !== resolvedBasePath) {
         throw new Error('Security Error: Path traversal detected. Access denied.');
     }
