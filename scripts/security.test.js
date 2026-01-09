@@ -2,7 +2,11 @@
 import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
 import { resolveComponents } from './component.helper.js';
+import { addServices } from './service.helper.js';
 import { jest } from '@jest/globals';
+import fs from 'node:fs';
+import path from 'path';
+import os from 'os';
 
 describe('Security Checks', () => {
     describe('Mermaid XSS Prevention', () => {
@@ -151,6 +155,92 @@ describe('Security Checks', () => {
             const resolved = resolveComponents(routes, fileContent);
             expect(resolved).toHaveLength(1);
             expect(resolved[0].loadComponent).toContain('double');
+        });
+    });
+
+    describe('Service Dependency Injection Security', () => {
+        let tempDir;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ng-route-hierarchy-test-'));
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should NOT detect services in comments (false positive)', () => {
+            const componentName = 'my.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            const fileContent = `
+                import { RealService } from './real.service';
+                // import { FakeService } from './fake.service';
+
+                export class MyComponent {
+                    constructor(private real: RealService) {
+                        // private fake: FakeService
+                    }
+                }
+            `;
+
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'my-path',
+                componentName: 'MyComponent',
+                parent: 'Root'
+            }];
+
+            const result = addServices(components);
+
+            expect(result).toEqual(expect.arrayContaining([
+                expect.objectContaining({ componentName: 'RealService', type: 'service' })
+            ]));
+
+            expect(result).not.toEqual(expect.arrayContaining([
+                expect.objectContaining({ componentName: 'FakeService' })
+            ]));
+        });
+
+        it('should NOT detect services in strings (false positive)', () => {
+            const componentName = 'string.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            const fileContent = `
+                import { RealService } from './real.service';
+
+                export class MyComponent {
+                    constructor(private real: RealService) {
+                        const s = "constructor(private fake: FakeService)";
+                    }
+
+                    method() {
+                        const s = "inject(FakeService)";
+                    }
+                }
+            `;
+
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'my-path',
+                componentName: 'MyComponent',
+                parent: 'Root'
+            }];
+
+            const result = addServices(components);
+
+            expect(result).toEqual(expect.arrayContaining([
+                 expect.objectContaining({ componentName: 'RealService', type: 'service' })
+            ]));
+
+            expect(result).not.toEqual(expect.arrayContaining([
+                expect.objectContaining({ componentName: 'FakeService' })
+            ]));
         });
     });
 });

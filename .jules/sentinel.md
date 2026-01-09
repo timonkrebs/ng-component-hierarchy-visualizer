@@ -20,3 +20,8 @@
 **Vulnerability:** The CLI allowed path traversal via the `routesFilePath` argument. The code `path.join(args.basePath, './' + args.routesFilePath)` did not prevent users from supplying paths like `../../etc/passwd` to escape the intended base directory.
 **Learning:** `path.join` resolves `..` segments and does not enforce a root directory jail. It merely concatenates paths and normalizes them.
 **Prevention:** Always resolve the base path and the target path to absolute paths using `path.resolve`. Then, explicitly verify that the resolved target path starts with the resolved base path (appended with `path.sep` to prevent prefix partial matches).
+
+## 2025-02-17 - Service Helper Regex Injection and False Positive Fix
+**Vulnerability:** `scripts/service.helper.js` utilized regex for identifying Angular services via `inject()` calls and constructor parameters. This approach was susceptible to false positives (matching strings/comments) and regex injection via dynamic regex construction using service names.
+**Learning:** Complex code analysis, especially for language constructs like dependency injection, is reliably handled only by AST parsing. Regex is insufficient for distinguishing code context from strings or comments.
+**Prevention:** Refactored `scripts/service.helper.js` to use AST parsing (`@typescript-eslint/typescript-estree`) for extracting injected services and constructor parameters. Leveraged `findImportPath` for safe import resolution.
