@@ -1,5 +1,5 @@
 ## 2024-12-14 - ReDoS in Route Extraction
-**Vulnerability:** A ReDoS (Regular Expression Denial of Service) vulnerability was found in `scripts/component.helper.js` where a regex was used to find routing modules in TypeScript imports. The regex `/(import|export)\s+\{?[^}]+\}?\s+from\s+'(.+\/.*routing.*|.+routes)'/` used greedy quantifiers (`.+`, `.*`) nested within each other or in a way that caused catastrophic backtracking when matching against long strings that didn't contain the expected `routing` keyword.
+**Vulnerability:** A ReDoS (Regular Expression Denial of Service) vulnerability was found in `scripts/component.helper.js` where a regex was used to find routing modules in TypeScript imports. The regex `/(import|export)\s+\{?[^}]+\}?\s+from\s+'(.+\/.*routing.*|.+routes)'/` used greedy quantifiers (`.+`, `.*`) nested within each other or that caused catastrophic backtracking when matching against long strings that didn't contain the expected `routing` keyword.
 **Learning:** Using regex to parse code (imports) with loose patterns (`.*`) is dangerous. Specifically, matching "any character" (`.`) until a keyword is found can trigger O(N^2) or worse performance if the keyword is missing.
 **Prevention:**
 1. Avoid `.*` and `.+` in regexes used on untrusted or large inputs, especially when looking for substrings.
@@ -25,3 +25,8 @@
 **Vulnerability:** `scripts/service.helper.js` utilized regex for identifying Angular services via `inject()` calls and constructor parameters. This approach was susceptible to false positives (matching strings/comments) and regex injection via dynamic regex construction using service names.
 **Learning:** Complex code analysis, especially for language constructs like dependency injection, is reliably handled only by AST parsing. Regex is insufficient for distinguishing code context from strings or comments.
 **Prevention:** Refactored `scripts/service.helper.js` to use AST parsing (`@typescript-eslint/typescript-estree`) for extracting injected services and constructor parameters. Leveraged `findImportPath` for safe import resolution.
+
+## 2025-02-18 - Template Helper Component Name Extraction Fix
+**Vulnerability:** `scripts/template.helper.js` relied on a Regex `export\s+(?:default\s+)?class\s+(\w+)` to extract the component name. This caused false positives where commented-out code (e.g., `// export class FakeComponent`) was incorrectly identified as the valid component name, potentially leading to incorrect diagram generation or obfuscating the real component.
+**Learning:** Regex is blind to code context (comments vs. code). Code parsing tasks should always rely on ASTs to ensure accuracy and security against injection or confusion attacks.
+**Prevention:** Replaced the regex logic with an AST traversal that specifically looks for `ExportDefaultDeclaration` or `ExportNamedDeclaration` of type `ClassDeclaration`. This ensures only active, valid code is processed.
