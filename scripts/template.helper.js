@@ -25,14 +25,17 @@ const loadDependencies = (c, withNestedDependencies, recursionDepth) => {
 
     const fileContent = fs.readFileSync(p, 'utf-8');
 
-    const componentNameRegex = /export\s+(?:default\s+)?class\s+(\w+)/g;
-    const nameMatches = [...fileContent.matchAll(componentNameRegex)];
-
-    if (nameMatches.length === 1) {
-        c.componentName = nameMatches[0][1];
-    }
-
     const ast = parse(fileContent, { range: true });
+
+    const exportedClasses = ast.body
+        .filter(n => n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration')
+        .map(n => n.declaration)
+        .filter(n => n?.type === 'ClassDeclaration' && n?.id?.name)
+        .map(n => n.id.name);
+
+    if (exportedClasses.length === 1) {
+        c.componentName = exportedClasses[0];
+    }
     const componentDecorator = ast.body
         .filter(n => (n.type === 'ExportDefaultDeclaration' || n.type === 'ExportNamedDeclaration') && n.declaration?.decorators)
         .flatMap(n => n.declaration.decorators)

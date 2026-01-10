@@ -3,6 +3,7 @@ import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
 import { resolveComponents } from './component.helper.js';
 import { addServices } from './service.helper.js';
+import { addTemplateElements } from './template.helper.js';
 import { jest } from '@jest/globals';
 import fs from 'node:fs';
 import path from 'path';
@@ -241,6 +242,64 @@ describe('Security Checks', () => {
             expect(result).not.toEqual(expect.arrayContaining([
                 expect.objectContaining({ componentName: 'FakeService' })
             ]));
+        });
+    });
+
+    describe('Template Helper Security', () => {
+        let tempDir;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ng-route-hierarchy-test-template-'));
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should NOT extract component name from comments (Regex False Positive)', () => {
+            const componentName = 'commented.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            // Scenario: A file that has NO real component exported, but a commented one.
+            // The current regex in template.helper.js picks up 'FakeComponent'.
+            const fileContent = `
+                // export class FakeComponent {}
+            `;
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'path',
+                componentName: 'OriginalName',
+                type: 'component'
+            }];
+
+            const result = addTemplateElements(components, false);
+
+            expect(result[0].componentName).toBe('OriginalName');
+        });
+
+        it('should extract component name correctly from AST', () => {
+             const componentName = 'real.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            const fileContent = `
+                @Component({})
+                export class RealComponent {}
+            `;
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'path',
+                componentName: 'OriginalName',
+                type: 'component'
+            }];
+
+            const result = addTemplateElements(components, false);
+
+            expect(result[0].componentName).toBe('RealComponent');
         });
     });
 });
