@@ -3,6 +3,7 @@ import { generateMermaid } from './main.helper.js';
 import { stripJsonComments } from './json.helper.js';
 import { resolveComponents } from './component.helper.js';
 import { addServices } from './service.helper.js';
+import { addTemplateElements } from './template.helper.js';
 import { jest } from '@jest/globals';
 import fs from 'node:fs';
 import path from 'path';
@@ -155,6 +156,66 @@ describe('Security Checks', () => {
             const resolved = resolveComponents(routes, fileContent);
             expect(resolved).toHaveLength(1);
             expect(resolved[0].loadComponent).toContain('double');
+        });
+    });
+
+    describe('Template Helper Regex Fragility', () => {
+        let tempDir;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ng-route-hierarchy-test-template-'));
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should NOT identify commented out class as component name (Fixed)', () => {
+            const componentName = 'commented.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            const fileContent = `
+                // export class CommentedClass {}
+            `;
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'path',
+                componentName: 'OriginalName',
+                parent: 'Root',
+                type: 'component'
+            }];
+
+            const result = addTemplateElements(components, false);
+
+            // The fix: it ignores the comment and keeps the original name
+            expect(result[0].componentName).toBe('OriginalName');
+        });
+
+        it('should update component name if file contains real class alongside comments', () => {
+            const componentName = 'mixed.component';
+            const componentPath = path.join(tempDir, componentName + '.ts');
+
+            const fileContent = `
+                // export class OldClass {}
+                export class RealClass {}
+            `;
+            fs.writeFileSync(componentPath, fileContent);
+
+            const components = [{
+                loadComponent: componentName,
+                path: 'path',
+                componentName: 'OriginalName',
+                parent: 'Root',
+                type: 'component'
+            }];
+
+            const result = addTemplateElements(components, false);
+
+            // The fix: it finds the 1 REAL class and updates to RealClass
+            expect(result[0].componentName).toBe('RealClass');
         });
     });
 
