@@ -243,4 +243,47 @@ describe('Security Checks', () => {
             ]));
         });
     });
+
+    describe('Path Traversal Prevention', () => {
+        let tempDir;
+        let outsideDir;
+        let secretFile;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'project-'));
+            outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), 'outside-'));
+            secretFile = path.join(outsideDir, 'secret.ts');
+            fs.writeFileSync(secretFile, 'export const routes = []; // secret content');
+
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+            fs.rmSync(outsideDir, { recursive: true, force: true });
+        });
+
+        it('should NOT allow reading file outside of project root', () => {
+            const relativePath = path.relative(tempDir, secretFile);
+            const routePath = relativePath.endsWith('.ts') ? relativePath.slice(0, -3) : relativePath;
+
+            const routes = [{
+                loadChildren: routePath,
+                path: 'secret',
+                componentName: 'Secret',
+                parent: 'Root'
+            }];
+
+            const readFileSyncSpy = jest.spyOn(fs, 'readFileSync');
+
+            try {
+                resolveComponents(routes, '');
+            } catch (e) {
+                // ignore errors
+            }
+
+            expect(readFileSyncSpy).not.toHaveBeenCalledWith(expect.stringContaining('secret.ts'), 'utf-8');
+            readFileSyncSpy.mockRestore();
+        });
+    });
 });
