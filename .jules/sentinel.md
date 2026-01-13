@@ -25,3 +25,8 @@
 **Vulnerability:** `scripts/service.helper.js` utilized regex for identifying Angular services via `inject()` calls and constructor parameters. This approach was susceptible to false positives (matching strings/comments) and regex injection via dynamic regex construction using service names.
 **Learning:** Complex code analysis, especially for language constructs like dependency injection, is reliably handled only by AST parsing. Regex is insufficient for distinguishing code context from strings or comments.
 **Prevention:** Refactored `scripts/service.helper.js` to use AST parsing (`@typescript-eslint/typescript-estree`) for extracting injected services and constructor parameters. Leveraged `findImportPath` for safe import resolution.
+
+## 2025-02-18 - Path Traversal in Component Helper
+**Vulnerability:** A Path Traversal vulnerability was identified in `scripts/component.helper.js` within `handleLoadChildren`. The function constructed file paths using user-supplied input (via `loadChildren` in route configurations) without verifying that the resolved path remained within the project root. This allowed reading files outside the project directory if the route configuration contained relative paths like `../../`.
+**Learning:** `path.join` resolves `..` segments but does not restrict the result to a specific directory. When handling file paths derived from external or untrusted sources (even source code of the project being analyzed), explicit checks are required to ensure they don't escape the intended boundary.
+**Prevention:** Implemented an `isSafePath` helper function that resolves the target path and checks if it starts with the resolved base path. Applied this check before `fs.readFileSync` calls in `handleLoadChildren`.

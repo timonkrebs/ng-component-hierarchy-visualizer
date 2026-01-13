@@ -69,6 +69,11 @@ const handleLoadChildren = (route) => {
             ? path.join(projectRoot, route.loadChildren)
             : path.join(projectRoot, route.loadChildren, "index.ts");
 
+    if (!isSafePath(childrenFilePath, projectRoot)) {
+        console.warn(`Security Warning: Access denied to ${childrenFilePath}. Path traversal attempted.`);
+        return [null];
+    }
+
     let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
     const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
         ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, ".."))
@@ -106,7 +111,14 @@ const handleLoadChildren = (route) => {
             : path.relative(projectRoot, path.resolve(projectRoot, resolvedModulePath));
 
         const moduleFilePathWithExtension = moduleFilePath.endsWith('.ts') ? moduleFilePath : moduleFilePath + ".ts";
-        routesFileContent = fs.readFileSync(path.join(projectRoot, moduleFilePathWithExtension), 'utf-8');
+        const fullModulePath = path.join(projectRoot, moduleFilePathWithExtension);
+
+        if (!isSafePath(fullModulePath, projectRoot)) {
+            console.warn(`Security Warning: Access denied to ${fullModulePath}. Path traversal attempted.`);
+            return [null];
+        }
+
+        routesFileContent = fs.readFileSync(fullModulePath, 'utf-8');
 
         // Connect module to path
         routes = [
@@ -149,6 +161,12 @@ const handleLoadChildren = (route) => {
             module: true
         }
     ];
+};
+
+const isSafePath = (targetPath, basePath) => {
+    const resolvedBasePath = path.resolve(basePath);
+    const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
+    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
