@@ -41,11 +41,17 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
     const cwd = process.env.INIT_CWD ?? process.cwd();
     return routes.flatMap(route => {
         if (route.loadComponent) {
+            const loadComponent = path.relative(cwd, path.resolve(cwd, relativePath ?? '', route.loadComponent));
+            if (!isSafePath(loadComponent, cwd)) {
+                console.warn(`Security Warning: Access denied to ${loadComponent}. Path traversal attempted.`);
+                return [null];
+            }
+
             return [{
                 ...route,
                 lazy: true,
                 type: 'component',
-                loadComponent: path.relative(cwd, path.resolve(cwd, relativePath ?? '', route.loadComponent))
+                loadComponent
             }];
         } else if (route.loadChildren) {
             return handleLoadChildren(route);
@@ -163,7 +169,7 @@ const handleLoadChildren = (route) => {
     ];
 };
 
-const isSafePath = (targetPath, basePath) => {
+export const isSafePath = (targetPath, basePath) => {
     const resolvedBasePath = path.resolve(basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
     return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
@@ -175,6 +181,11 @@ const handleComponent = (route, routesFileContent, relativePath = null) => {
         const cwd = process.env.INIT_CWD ?? process.cwd();
 
         const loadComponentPath = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+
+        if (!isSafePath(loadComponentPath, cwd)) {
+            console.warn(`Security Warning: Access denied to ${loadComponentPath}. Path traversal attempted.`);
+            return [null];
+        }
 
         return [{
             path: route.path,
