@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
 import { extractRoutesFromTS, findImportPath } from './route.helper.js';
-import { handleRoutePaths, resolveComponents } from './component.helper.js';
+import { handleRoutePaths, resolveComponents, isSafePath } from './component.helper.js';
 
 export const addTemplateElements = (elements, withNestedDependencies, recursionDepth = 0) => {
     if (recursionDepth > 100) {
@@ -111,6 +111,12 @@ const handleComponent = (componentName, ast, parent, relativePath = null) => {
     } else if (modulePath) {
         const cwd = process.env.INIT_CWD ?? process.cwd();
         const loadComponent = relativePath ? path.relative(cwd, path.resolve(cwd, relativePath, modulePath)) : modulePath;
+
+        if (!isSafePath(loadComponent, cwd)) {
+            console.warn(`Security Warning: Access denied to ${loadComponent}. Path traversal attempted.`);
+            return null;
+        }
+
         return { loadComponent, componentName, parent, lazy: false, type: 'import' };
     } else {
         return { loadComponent: null, componentName, parent, lazy: false, type: 'import', skipLoadingDependencies: true };

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'path';
 import { parse } from '@typescript-eslint/typescript-estree';
 import { findImportPath } from './route.helper.js';
+import { isSafePath } from './component.helper.js';
 
 let pathAliases = new Map();
 let aliasKeys = [];
@@ -65,6 +66,11 @@ const createService = (serviceName, ast, parent) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
     const relativePath = path.relative(cwd, path.resolve(cwd, parent.loadComponent, ".."));
     const thisPath = path.relative(cwd, path.resolve(cwd, relativePath, replacePath(importPath)));
+
+    if (!isSafePath(thisPath, cwd)) {
+        console.warn(`Security Warning: Access denied to ${thisPath}. Path traversal attempted.`);
+        return null;
+    }
 
     return { componentName: serviceName, loadComponent: `./${thisPath}`, path: parent.path, parent: parent.componentName, lazy: false, type: 'service' };
 };
