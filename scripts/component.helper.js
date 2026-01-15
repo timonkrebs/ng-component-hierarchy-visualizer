@@ -66,14 +66,22 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
 const handleLoadChildren = (route) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
-    const isTsFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren + ".ts"));
-    const isFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren)) && fs.lstatSync(path.join(projectRoot, route.loadChildren)).isFile();
+    const possibleTsPath = path.join(projectRoot, route.loadChildren + ".ts");
+    const possibleFilePath = path.join(projectRoot, route.loadChildren);
+    const possibleIndexPath = path.join(projectRoot, route.loadChildren, "index.ts");
+
+    // Securely check for existence without probing unsafe paths
+    const safeExistsSync = (p) => isSafePath(p, projectRoot) && fs.existsSync(p);
+    const safeIsFile = (p) => isSafePath(p, projectRoot) && fs.existsSync(p) && fs.lstatSync(p).isFile();
+
+    const isTsFileDirectlyInFolder = safeExistsSync(possibleTsPath);
+    const isFileDirectlyInFolder = safeIsFile(possibleFilePath);
 
     const childrenFilePath = isTsFileDirectlyInFolder
-        ? path.join(projectRoot, route.loadChildren + ".ts")
+        ? possibleTsPath
         : isFileDirectlyInFolder
-            ? path.join(projectRoot, route.loadChildren)
-            : path.join(projectRoot, route.loadChildren, "index.ts");
+            ? possibleFilePath
+            : possibleIndexPath;
 
     if (!isSafePath(childrenFilePath, projectRoot)) {
         console.warn(`Security Warning: Access denied to ${childrenFilePath}. Path traversal attempted.`);
