@@ -7,3 +7,8 @@
 **Vulnerability:** The application checked for the existence of files (using `fs.existsSync` and `fs.lstatSync`) based on user-supplied paths in `loadChildren` *before* verifying if those paths were safe. This allowed an attacker to probe for the existence of files outside the project directory (TOCTOU / Information Disclosure).
 **Learning:** Checking for file existence is a privileged operation that can leak information. Always validate path safety (`isSafePath`) *before* performing any file system operations, including existence checks.
 **Prevention:** Moved the `isSafePath` check to before any `fs` calls in `scripts/component.helper.js`.
+
+## 2025-05-23 - Regex Component Extraction
+**Vulnerability:** The application used a regex to extract component class names from source files, which was vulnerable to false positives from comments or string literals containing class declarations. This could lead to incorrect component names or potential confusion/injection in the generated diagram.
+**Learning:** Regex is generally unsuitable for parsing structured code like TypeScript/JavaScript because it cannot reliably handle context (strings, comments, nesting). AST parsing is the robust alternative.
+**Prevention:** Replaced regex-based extraction in `scripts/template.helper.js` with AST traversal using `@typescript-eslint/typescript-estree`.
