@@ -66,14 +66,18 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
 const handleLoadChildren = (route) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
-    const isTsFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren + ".ts"));
-    const isFileDirectlyInFolder = fs.existsSync(path.join(projectRoot, route.loadChildren)) && fs.lstatSync(path.join(projectRoot, route.loadChildren)).isFile();
+    const potentialTsPath = path.join(projectRoot, route.loadChildren + ".ts");
+    const potentialFilePath = path.join(projectRoot, route.loadChildren);
+    const potentialIndexPath = path.join(projectRoot, route.loadChildren, "index.ts");
+
+    const isTsFileDirectlyInFolder = isSafePath(potentialTsPath, projectRoot) && fs.existsSync(potentialTsPath);
+    const isFileDirectlyInFolder = isSafePath(potentialFilePath, projectRoot) && fs.existsSync(potentialFilePath) && fs.lstatSync(potentialFilePath).isFile();
 
     const childrenFilePath = isTsFileDirectlyInFolder
-        ? path.join(projectRoot, route.loadChildren + ".ts")
+        ? potentialTsPath
         : isFileDirectlyInFolder
-            ? path.join(projectRoot, route.loadChildren)
-            : path.join(projectRoot, route.loadChildren, "index.ts");
+            ? potentialFilePath
+            : potentialIndexPath;
 
     if (!isSafePath(childrenFilePath, projectRoot)) {
         console.warn(`Security Warning: Access denied to ${childrenFilePath}. Path traversal attempted.`);
