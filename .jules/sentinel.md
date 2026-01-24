@@ -7,3 +7,8 @@
 **Vulnerability:** The application checked for the existence of files (using `fs.existsSync` and `fs.lstatSync`) based on user-supplied paths in `loadChildren` *before* verifying if those paths were safe. This allowed an attacker to probe for the existence of files outside the project directory (TOCTOU / Information Disclosure).
 **Learning:** Checking for file existence is a privileged operation that can leak information. Always validate path safety (`isSafePath`) *before* performing any file system operations, including existence checks.
 **Prevention:** Moved the `isSafePath` check to before any `fs` calls in `scripts/component.helper.js`.
+
+## 2026-01-24 - DoS via Infinite Recursion in Route Parsing
+**Vulnerability:** The `resolveComponents` and `handleLoadChildren` functions recursively processed route configurations without tracking visited files. Circular dependencies in route files (e.g., A loads B, B loads A) caused infinite recursion, leading to a Stack Overflow crash (DoS).
+**Learning:** Static analysis tools that traverse graphs defined by source code must assume the graph can be cyclic. Recursive traversal without cycle detection is a ticking time bomb.
+**Prevention:** Implemented DFS cycle detection using a `visited` Set in `resolveComponents`. When a cycle is detected, the recursion stops, and a "link" node is returned to represent the connection without crashing.
