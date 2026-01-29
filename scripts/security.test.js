@@ -286,4 +286,55 @@ describe('Security Checks', () => {
             readFileSyncSpy.mockRestore();
         });
     });
+
+    describe('DoS Prevention (Circular Dependencies)', () => {
+        let tempDir;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cycle-test-'));
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should handle circular dependencies in loadChildren without crashing', () => {
+            const moduleAPath = path.join(tempDir, 'moduleA.ts');
+            const moduleBPath = path.join(tempDir, 'moduleB.ts');
+
+            // Module A loads Module B
+            fs.writeFileSync(moduleAPath, `
+                export const routes = [
+                    {
+                        path: 'b',
+                        loadChildren: () => import('./moduleB')
+                    }
+                ];
+            `);
+
+            // Module B loads Module A
+            fs.writeFileSync(moduleBPath, `
+                export const routes = [
+                    {
+                        path: 'a',
+                        loadChildren: () => import('./moduleA')
+                    }
+                ];
+            `);
+
+            const routes = [{
+                path: 'a',
+                loadChildren: './moduleA',
+                componentName: 'ModuleA',
+                parent: 'Root'
+            }];
+
+            expect(() => {
+                const result = resolveComponents(routes, '');
+                // Verify that we got something back and didn't crash
+                expect(result.length).toBeGreaterThan(0);
+            }).not.toThrow();
+        });
+    });
 });
