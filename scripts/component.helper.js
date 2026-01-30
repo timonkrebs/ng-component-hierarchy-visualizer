@@ -37,7 +37,11 @@ const replacePath = (basePath) => {
     return basePath;
 };
 
-export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
+export const resolveComponents = (routes, routesFileContent, relativePath = null, recursionDepth = 0) => {
+    if (recursionDepth > 100) {
+        console.warn('Security Warning: Recursion depth limit reached in resolveComponents. Stopping traversal.');
+        return [];
+    }
     const cwd = process.env.INIT_CWD ?? process.cwd();
     return routes.flatMap(route => {
         if (route.loadComponent) {
@@ -54,7 +58,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
                 loadComponent
             }];
         } else if (route.loadChildren) {
-            return handleLoadChildren(route);
+            return handleLoadChildren(route, recursionDepth);
         } else if (route.skipLoadingDependencies) {
             return [route];
         } else {
@@ -63,7 +67,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
     }).filter(Boolean);
 };
 
-const handleLoadChildren = (route) => {
+const handleLoadChildren = (route, recursionDepth) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
     const potentialTsPath = path.join(projectRoot, route.loadChildren + ".ts");
@@ -155,7 +159,7 @@ const handleLoadChildren = (route) => {
         return route;
     });
 
-    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent);
+    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent, recursionDepth + 1);
 
     // Add connection back to the original module
     return [

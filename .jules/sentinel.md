@@ -7,3 +7,8 @@
 **Vulnerability:** The application checked for the existence of files (using `fs.existsSync` and `fs.lstatSync`) based on user-supplied paths in `loadChildren` *before* verifying if those paths were safe. This allowed an attacker to probe for the existence of files outside the project directory (TOCTOU / Information Disclosure).
 **Learning:** Checking for file existence is a privileged operation that can leak information. Always validate path safety (`isSafePath`) *before* performing any file system operations, including existence checks.
 **Prevention:** Moved the `isSafePath` check to before any `fs` calls in `scripts/component.helper.js`.
+
+## 2025-02-23 - Recursion Depth Limit in Route Resolution
+**Vulnerability:** A Denial of Service (DoS) vulnerability existed in `resolveComponents` and `handleLoadChildren` in `scripts/component.helper.js`, where circular dependencies in Angular route configurations caused infinite recursion and a stack overflow crash.
+**Learning:** Recursive parsing of potentially cyclic structures (like route graphs) without a base case or cycle detection mechanism is inherently unsafe and can be exploited.
+**Prevention:** Implemented a recursion depth limit (100) in `resolveComponents` to stop processing when the limit is reached, preventing crashes.
