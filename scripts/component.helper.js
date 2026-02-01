@@ -37,7 +37,7 @@ const replacePath = (basePath) => {
     return basePath;
 };
 
-export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
+export const resolveComponents = (routes, routesFileContent, relativePath = null, visited = new Set()) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
     return routes.flatMap(route => {
         if (route.loadComponent) {
@@ -54,7 +54,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
                 loadComponent
             }];
         } else if (route.loadChildren) {
-            return handleLoadChildren(route);
+            return handleLoadChildren(route, visited);
         } else if (route.skipLoadingDependencies) {
             return [route];
         } else {
@@ -63,7 +63,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
     }).filter(Boolean);
 };
 
-const handleLoadChildren = (route) => {
+const handleLoadChildren = (route, visited) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
     const potentialTsPath = path.join(projectRoot, route.loadChildren + ".ts");
@@ -84,93 +84,112 @@ const handleLoadChildren = (route) => {
         return [null];
     }
 
-    let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
-    const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
-        ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, ".."))
-        : path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren));
-
-    let routes = [];
-
-    const extractedRoutes = extractRoutesFromTS(routesFileContent, route.path);
-    if (extractedRoutes?.length) {
-        // Connect module to path
-        routes = [
-            {
-                componentName: route.path,
-                path: relativePathToParent,
-                parent: route.componentName,
-                lazy: false,
-                type: 'module',
-                subgraph: 'start',
-                skipLoadingDependencies: true
-            },
-            ...extractedRoutes
-        ];
-    } else {
-        // Check if routes are configured directly (convention: .+\/.+routing.*|.+routes)
-        const imports = findImports(routesFileContent);
-        const moduleImportPath = imports.find(path => {
-            return path.match(/routing/) || path.match(/routes/);
-        });
-
-        const originalModulePath = moduleImportPath ?? imports[0];
-        const resolvedModulePath = replacePath(originalModulePath);
-
-        const moduleFilePath = originalModulePath === resolvedModulePath
-            ? path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, originalModulePath))
-            : path.relative(projectRoot, path.resolve(projectRoot, resolvedModulePath));
-
-        const moduleFilePathWithExtension = moduleFilePath.endsWith('.ts') ? moduleFilePath : moduleFilePath + ".ts";
-        const fullModulePath = path.join(projectRoot, moduleFilePathWithExtension);
-
-        if (!isSafePath(fullModulePath, projectRoot)) {
-            console.warn(`Security Warning: Access denied to ${fullModulePath}. Path traversal attempted.`);
-            return [null];
-        }
-
-        routesFileContent = fs.readFileSync(fullModulePath, 'utf-8');
-
-        // Connect module to path
-        routes = [
-            {
-                componentName: route.path,
-                path: moduleFilePath,
-                parent: route.componentName,
-                lazy: false,
-                type: 'route',
-                subgraph: 'start',
-                skipLoadingDependencies: true
-            },
-            ...extractRoutesFromTS(routesFileContent, route.path)
-        ];
-    }
-
-    const flattenedRoutes = handleRoutePaths(routes).map(route => {
-        if (relativePathToParent && route.loadChildren) {
-            return {
-                ...route,
-                loadChildren: path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, route.loadChildren))
-            };
-        }
-        return route;
-    });
-
-    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent);
-
-    // Add connection back to the original module
-    return [
-        ...components,
-        {
+    if (visited.has(childrenFilePath)) {
+        return [{
             componentName: route.componentName,
             path: route.path,
             parent: route.parent,
             lazy: true,
+            type: 'link', // Use a special type or existing one to denote a link/cycle
             subgraph: 'end',
-            type: 'route',
-            skipLoadingDependencies: true,
-            module: true
+            warning: 'Cycle detected',
+            skipLoadingDependencies: true
+        }];
+    }
+
+    visited.add(childrenFilePath);
+
+    try {
+        let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
+        const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
+            ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, ".."))
+            : path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren));
+
+        let routes = [];
+
+        const extractedRoutes = extractRoutesFromTS(routesFileContent, route.path);
+        if (extractedRoutes?.length) {
+            // Connect module to path
+            routes = [
+                {
+                    componentName: route.path,
+                    path: relativePathToParent,
+                    parent: route.componentName,
+                    lazy: false,
+                    type: 'module',
+                    subgraph: 'start',
+                    skipLoadingDependencies: true
+                },
+                ...extractedRoutes
+            ];
+        } else {
+            // Check if routes are configured directly (convention: .+\/.+routing.*|.+routes)
+            const imports = findImports(routesFileContent);
+            const moduleImportPath = imports.find(path => {
+                return path.match(/routing/) || path.match(/routes/);
+            });
+
+            const originalModulePath = moduleImportPath ?? imports[0];
+            const resolvedModulePath = replacePath(originalModulePath);
+
+            const moduleFilePath = originalModulePath === resolvedModulePath
+                ? path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, originalModulePath))
+                : path.relative(projectRoot, path.resolve(projectRoot, resolvedModulePath));
+
+            const moduleFilePathWithExtension = moduleFilePath.endsWith('.ts') ? moduleFilePath : moduleFilePath + ".ts";
+            const fullModulePath = path.join(projectRoot, moduleFilePathWithExtension);
+
+            if (!isSafePath(fullModulePath, projectRoot)) {
+                console.warn(`Security Warning: Access denied to ${fullModulePath}. Path traversal attempted.`);
+                return [null];
+            }
+
+            routesFileContent = fs.readFileSync(fullModulePath, 'utf-8');
+
+            // Connect module to path
+            routes = [
+                {
+                    componentName: route.path,
+                    path: moduleFilePath,
+                    parent: route.componentName,
+                    lazy: false,
+                    type: 'route',
+                    subgraph: 'start',
+                    skipLoadingDependencies: true
+                },
+                ...extractRoutesFromTS(routesFileContent, route.path)
+            ];
         }
-    ];
+
+        const flattenedRoutes = handleRoutePaths(routes).map(route => {
+            if (relativePathToParent && route.loadChildren) {
+                return {
+                    ...route,
+                    loadChildren: path.relative(projectRoot, path.resolve(projectRoot, relativePathToParent, route.loadChildren))
+                };
+            }
+            return route;
+        });
+
+        const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent, visited);
+
+        // Add connection back to the original module
+        return [
+            ...components,
+            {
+                componentName: route.componentName,
+                path: route.path,
+                parent: route.parent,
+                lazy: true,
+                subgraph: 'end',
+                type: 'route',
+                skipLoadingDependencies: true,
+                module: true
+            }
+        ];
+    } finally {
+        visited.delete(childrenFilePath);
+    }
 };
 
 export const isSafePath = (targetPath, basePath) => {
