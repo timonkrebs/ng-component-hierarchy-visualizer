@@ -285,5 +285,28 @@ describe('Security Checks', () => {
             expect(readFileSyncSpy).not.toHaveBeenCalledWith(expect.stringContaining('secret.ts'), 'utf-8');
             readFileSyncSpy.mockRestore();
         });
+
+        it('should NOT allow following symlinks to files outside of project root', () => {
+            const symlinkPath = path.join(tempDir, 'link.ts');
+            // Create symlink: link.ts -> ../outside/secret.ts
+            // Note: fs.symlinkSync(target, path)
+            fs.symlinkSync(secretFile, symlinkPath);
+
+            const routes = [{
+                loadChildren: './link',
+                path: 'symlink',
+                componentName: 'Symlink',
+                parent: 'Root'
+            }];
+
+            const readFileSyncSpy = jest.spyOn(fs, 'readFileSync');
+
+            resolveComponents(routes, '');
+
+            expect(readFileSyncSpy).not.toHaveBeenCalledWith(symlinkPath, 'utf-8');
+            expect(readFileSyncSpy).not.toHaveBeenCalledWith(secretFile, 'utf-8');
+
+            readFileSyncSpy.mockRestore();
+        });
     });
 });
