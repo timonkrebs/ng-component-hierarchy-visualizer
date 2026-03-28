@@ -174,8 +174,26 @@ const handleLoadChildren = (route) => {
 };
 
 export const isSafePath = (targetPath, basePath) => {
-    const resolvedBasePath = path.resolve(basePath);
-    const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
+    let resolvedBasePath = path.resolve(basePath);
+    let resolvedTarget = path.resolve(resolvedBasePath, targetPath);
+
+    // 1. First, check purely based on logical paths (prevents obvious traversals like ../../../etc/passwd without touching FS)
+    if (!(resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath)) {
+        return false;
+    }
+
+    // 2. If it passes logical check, verify physical path to prevent Symlink attacks
+    try {
+        if (fs.existsSync(resolvedBasePath)) {
+            resolvedBasePath = fs.realpathSync(resolvedBasePath);
+        }
+        if (fs.existsSync(resolvedTarget)) {
+            resolvedTarget = fs.realpathSync(resolvedTarget);
+        }
+    } catch {
+        // Fallback for non-existent files or permission errors
+    }
+
     return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
 };
 
