@@ -7,3 +7,8 @@
 **Vulnerability:** The application checked for the existence of files (using `fs.existsSync` and `fs.lstatSync`) based on user-supplied paths in `loadChildren` *before* verifying if those paths were safe. This allowed an attacker to probe for the existence of files outside the project directory (TOCTOU / Information Disclosure).
 **Learning:** Checking for file existence is a privileged operation that can leak information. Always validate path safety (`isSafePath`) *before* performing any file system operations, including existence checks.
 **Prevention:** Moved the `isSafePath` check to before any `fs` calls in `scripts/component.helper.js`.
+
+## 2025-02-18 - Path Traversal via Symlinks
+**Vulnerability:** The `isSafePath` check relied on `path.resolve` which resolves relative paths (like `../`) but does not resolve symbolic links. This allowed an attacker to create a symlink inside the project root pointing to a file outside (e.g., `ln -s /etc/passwd src/link`), bypassing the containment check.
+**Learning:** `path.resolve` is insufficient for enforcing security boundaries when the file system supports symbolic links. Always resolve the "real" path using `fs.realpathSync` to verify the physical location of the file.
+**Prevention:** Updated `isSafePath` in `scripts/component.helper.js` to verify that `fs.realpathSync(targetPath)` is also contained within the project root.
