@@ -37,7 +37,7 @@ const replacePath = (basePath) => {
     return basePath;
 };
 
-export const resolveComponents = (routes, routesFileContent, relativePath = null) => {
+export const resolveComponents = (routes, routesFileContent, relativePath = null, visited = new Set()) => {
     const cwd = process.env.INIT_CWD ?? process.cwd();
     return routes.flatMap(route => {
         if (route.loadComponent) {
@@ -54,7 +54,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
                 loadComponent
             }];
         } else if (route.loadChildren) {
-            return handleLoadChildren(route);
+            return handleLoadChildren(route, visited);
         } else if (route.skipLoadingDependencies) {
             return [route];
         } else {
@@ -63,7 +63,7 @@ export const resolveComponents = (routes, routesFileContent, relativePath = null
     }).filter(Boolean);
 };
 
-const handleLoadChildren = (route) => {
+const handleLoadChildren = (route, visited) => {
     const projectRoot = process.env.INIT_CWD ?? process.cwd();
 
     const potentialTsPath = path.join(projectRoot, route.loadChildren + ".ts");
@@ -83,6 +83,20 @@ const handleLoadChildren = (route) => {
         console.warn(`Security Warning: Access denied to ${childrenFilePath}. Path traversal attempted.`);
         return [null];
     }
+
+    if (visited.has(childrenFilePath)) {
+        return [{
+            componentName: route.componentName,
+            path: route.path,
+            parent: route.parent,
+            lazy: true,
+            subgraph: 'end',
+            type: 'route',
+            skipLoadingDependencies: true,
+            module: true
+        }];
+    }
+    visited.add(childrenFilePath);
 
     let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
     const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
@@ -155,7 +169,7 @@ const handleLoadChildren = (route) => {
         return route;
     });
 
-    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent);
+    const components = resolveComponents(flattenedRoutes, routesFileContent, relativePathToParent, visited);
 
     // Add connection back to the original module
     return [
