@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'path';
 import { addTemplateElements } from './template.helper.js';
 import { extractRoutesFromTS } from './route.helper.js';
-import { handleRoutePaths, resolveComponents, setPathAliases } from './component.helper.js';
+import { handleRoutePaths, resolveComponents, setPathAliases, isSafePath } from './component.helper.js';
 import { addServices, setServicePathAliases } from './service.helper.js';
 
 export const main = (args) => {
@@ -14,12 +14,12 @@ export const main = (args) => {
     process.env.INIT_CWD = args.basePath;
 
     // Security: Prevent path traversal
+    if (!isSafePath(args.routesFilePath, args.basePath)) {
+        throw new Error(`Security Error: Path traversal detected. Access denied to ${args.routesFilePath}`);
+    }
+
     const resolvedBasePath = path.resolve(args.basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, args.routesFilePath);
-
-    if (!resolvedTarget.startsWith(resolvedBasePath + path.sep)) {
-        throw new Error(`Security Error: Path traversal detected. Access denied to ${resolvedTarget}`);
-    }
 
     const routesFileContent = fs.readFileSync(resolvedTarget, 'utf-8');
     const routes = extractRoutesFromTS(routesFileContent);
