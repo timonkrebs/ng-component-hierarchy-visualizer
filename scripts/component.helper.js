@@ -174,9 +174,33 @@ const handleLoadChildren = (route) => {
 };
 
 export const isSafePath = (targetPath, basePath) => {
-    const resolvedBasePath = path.resolve(basePath);
+    let resolvedBasePath = path.resolve(basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
-    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
+
+    // 1. String-based check (fast, handles non-existent files safely, prevents obvious traversal)
+    if (!(resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath)) {
+        return false;
+    }
+
+    // 2. Symlink resolution (prevents bypassing #1 via symlinks)
+    try {
+        // Resolve basePath if it exists
+        if (fs.existsSync(resolvedBasePath)) {
+            resolvedBasePath = fs.realpathSync(resolvedBasePath);
+        }
+
+        // If target exists, resolve it and check again
+        if (fs.existsSync(resolvedTarget)) {
+            const realTarget = fs.realpathSync(resolvedTarget);
+            return realTarget.startsWith(resolvedBasePath + path.sep) || realTarget === resolvedBasePath;
+        }
+    } catch {
+        // If any error occurs during realpath (e.g. permission), deny access
+        return false;
+    }
+
+    // If target does not exist, we rely on the string-based check from #1
+    return true;
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
