@@ -70,17 +70,36 @@ const handleLoadChildren = (route) => {
     const potentialFilePath = path.join(projectRoot, route.loadChildren);
     const potentialIndexPath = path.join(projectRoot, route.loadChildren, "index.ts");
 
-    const isTsFileDirectlyInFolder = isSafePath(potentialTsPath, projectRoot) && fs.existsSync(potentialTsPath);
-    const isFileDirectlyInFolder = isSafePath(potentialFilePath, projectRoot) && fs.existsSync(potentialFilePath) && fs.lstatSync(potentialFilePath).isFile();
+    let childrenFilePath = potentialIndexPath;
+    let isTsFileDirectlyInFolder = false;
+    let isFileDirectlyInFolder = false;
 
-    const childrenFilePath = isTsFileDirectlyInFolder
-        ? potentialTsPath
-        : isFileDirectlyInFolder
-            ? potentialFilePath
-            : potentialIndexPath;
+    if (!isSafePath(potentialTsPath, projectRoot)) {
+        console.warn(`Security Warning: Access denied to ${potentialTsPath}. Path traversal attempted.`);
+        return [null];
+    }
 
-    if (!isSafePath(childrenFilePath, projectRoot)) {
-        console.warn(`Security Warning: Access denied to ${childrenFilePath}. Path traversal attempted.`);
+    if (fs.existsSync(potentialTsPath)) {
+        childrenFilePath = potentialTsPath;
+        isTsFileDirectlyInFolder = true;
+    } else {
+        if (!isSafePath(potentialFilePath, projectRoot)) {
+            console.warn(`Security Warning: Access denied to ${potentialFilePath}. Path traversal attempted.`);
+            return [null];
+        }
+
+        if (fs.existsSync(potentialFilePath) && fs.lstatSync(potentialFilePath).isFile()) {
+            childrenFilePath = potentialFilePath;
+            isFileDirectlyInFolder = true;
+        } else {
+            if (!isSafePath(potentialIndexPath, projectRoot)) {
+                console.warn(`Security Warning: Access denied to ${potentialIndexPath}. Path traversal attempted.`);
+                return [null];
+            }
+        }
+    }
+
+    if (!fs.existsSync(childrenFilePath)) {
         return [null];
     }
 
@@ -176,7 +195,25 @@ const handleLoadChildren = (route) => {
 export const isSafePath = (targetPath, basePath) => {
     const resolvedBasePath = path.resolve(basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
-    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
+
+    // 1. Logical path check
+    if (!(resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath)) {
+        return false;
+    }
+
+    // 2. Physical path check (symlink resolution)
+    try {
+        if (fs.existsSync(resolvedTarget)) {
+            const realTarget = fs.realpathSync(resolvedTarget);
+            const realBasePath = fs.realpathSync(resolvedBasePath);
+            return realTarget.startsWith(realBasePath + path.sep) || realTarget === realBasePath;
+        }
+    } catch {
+        // If file exists but realpath fails, or other fs errors, assume unsafe
+        return false;
+    }
+
+    return true;
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
