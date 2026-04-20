@@ -285,5 +285,32 @@ describe('Security Checks', () => {
             expect(readFileSyncSpy).not.toHaveBeenCalledWith(expect.stringContaining('secret.ts'), 'utf-8');
             readFileSyncSpy.mockRestore();
         });
+
+        it('should NOT allow reading file through symlink pointing outside project root', () => {
+            const linkPath = path.join(tempDir, 'link_to_secret.ts');
+            // Create a symlink: linkPath -> secretFile
+            fs.symlinkSync(secretFile, linkPath);
+
+            const routes = [{
+                loadChildren: 'link_to_secret',
+                path: 'secret',
+                componentName: 'Secret',
+                parent: 'Root'
+            }];
+
+            const readFileSyncSpy = jest.spyOn(fs, 'readFileSync');
+
+            const result = resolveComponents(routes, '');
+
+            // Should be blocked
+            expect(result).toHaveLength(0);
+
+            // Should not have read the target file
+            // Note: readFileSync might be called on linkPath, which resolves to secretFile.
+            // But if blocked, it shouldn't be called at all.
+            expect(readFileSyncSpy).not.toHaveBeenCalled();
+
+            readFileSyncSpy.mockRestore();
+        });
     });
 });

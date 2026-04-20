@@ -84,6 +84,10 @@ const handleLoadChildren = (route) => {
         return [null];
     }
 
+    if (!fs.existsSync(childrenFilePath)) {
+        return [null];
+    }
+
     let routesFileContent = fs.readFileSync(childrenFilePath, 'utf-8');
     const relativePathToParent = isTsFileDirectlyInFolder || isFileDirectlyInFolder
         ? path.relative(projectRoot, path.resolve(projectRoot, route.loadChildren, ".."))
@@ -176,7 +180,24 @@ const handleLoadChildren = (route) => {
 export const isSafePath = (targetPath, basePath) => {
     const resolvedBasePath = path.resolve(basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
-    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
+
+    // 1. Logical containment check
+    if (!(resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath)) {
+        return false;
+    }
+
+    // 2. Physical containment check (symlink resolution)
+    if (fs.existsSync(resolvedTarget)) {
+        try {
+            const realTarget = fs.realpathSync(resolvedTarget);
+            const realBasePath = fs.realpathSync(resolvedBasePath);
+            return realTarget.startsWith(realBasePath + path.sep) || realTarget === realBasePath;
+        } catch {
+            return false;
+        }
+    }
+
+    return true;
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
