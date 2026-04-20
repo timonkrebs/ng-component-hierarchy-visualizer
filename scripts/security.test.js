@@ -286,4 +286,51 @@ describe('Security Checks', () => {
             readFileSyncSpy.mockRestore();
         });
     });
+
+    describe('Recursion Depth Limit (DoS Prevention)', () => {
+        let tempDir;
+
+        beforeEach(() => {
+            tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursion-test-'));
+            process.env.INIT_CWD = tempDir;
+        });
+
+        afterEach(() => {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+
+        it('should stop recursion when depth limit is reached', () => {
+            const routeA = path.join(tempDir, 'routeA.ts');
+            const routeB = path.join(tempDir, 'routeB.ts');
+
+            // Circular dependency
+            fs.writeFileSync(routeA, `
+                export const routes = [{
+                    path: 'a',
+                    loadChildren: () => import('./routeB').then(m => m.routes)
+                }];
+            `);
+            fs.writeFileSync(routeB, `
+                export const routes = [{
+                    path: 'b',
+                    loadChildren: () => import('./routeA').then(m => m.routes)
+                }];
+            `);
+
+            const initialRoutes = [{
+                path: 'root',
+                loadChildren: './routeA',
+                componentName: 'RouteA',
+                parent: 'Root'
+            }];
+
+            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+            // This should not crash
+            resolveComponents(initialRoutes, '');
+
+            expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Recursion depth limit reached'));
+            consoleWarnSpy.mockRestore();
+        });
+    });
 });
