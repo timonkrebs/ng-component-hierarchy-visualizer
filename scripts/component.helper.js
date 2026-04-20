@@ -176,7 +176,23 @@ const handleLoadChildren = (route) => {
 export const isSafePath = (targetPath, basePath) => {
     const resolvedBasePath = path.resolve(basePath);
     const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
-    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
+
+    // 1. Logical Check
+    if (!(resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath)) {
+        return false;
+    }
+
+    // 2. Physical Check (Symlink prevention)
+    if (fs.existsSync(resolvedTarget)) {
+        try {
+            const realPath = fs.realpathSync(resolvedTarget);
+            return realPath.startsWith(resolvedBasePath + path.sep) || realPath === resolvedBasePath;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    return true;
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
