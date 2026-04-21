@@ -38,10 +38,16 @@ const parseArguments = (argv) => {
     return args;
 }
 
-fs.writeFile('Component-Diagram.mmd', main(parseArguments(process.argv)), (err) => {
-    if (err) {
-        console.error('Error writing file:', err);
-    } else {
-        console.log('File written successfully!');
-    }
-});
+try {
+    fs.writeFile('Component-Diagram.mmd', main(parseArguments(process.argv)), (err) => {
+        if (err) {
+            console.error('Error writing file:', err instanceof Error ? err.message : String(err));
+            process.exit(1);
+        } else {
+            console.log('File written successfully!');
+        }
+    });
+} catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+}
