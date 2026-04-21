@@ -174,9 +174,25 @@ const handleLoadChildren = (route) => {
 };
 
 export const isSafePath = (targetPath, basePath) => {
-    const resolvedBasePath = path.resolve(basePath);
-    const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
-    return resolvedTarget.startsWith(resolvedBasePath + path.sep) || resolvedTarget === resolvedBasePath;
+    try {
+        const resolvedBasePath = fs.realpathSync(path.resolve(basePath));
+        const resolvedTarget = path.resolve(resolvedBasePath, targetPath);
+
+        // 1. Logical Check: If it looks like it's outside, reject it immediately.
+        if (!resolvedTarget.startsWith(resolvedBasePath + path.sep) && resolvedTarget !== resolvedBasePath) {
+            return false;
+        }
+
+        // 2. Physical Check: If it exists, resolve symlinks and check again.
+        if (fs.existsSync(resolvedTarget)) {
+            const realTarget = fs.realpathSync(resolvedTarget);
+            return realTarget.startsWith(resolvedBasePath + path.sep) || realTarget === resolvedBasePath;
+        }
+
+        return true;
+    } catch (e) {
+        return false;
+    }
 };
 
 const handleComponent = (route, routesFileContent, relativePath = null) => {
